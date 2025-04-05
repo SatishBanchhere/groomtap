@@ -1,0 +1,174 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #ff8a3c;
+  --secondary: #1e293b;
+  --background: #f8f5ef;
+  --foreground: #1e293b;
+}
+
+body {
+  color: var(--foreground);
+  background-color: white;
+  font-family: "Inter", sans-serif;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.btn-primary {
+  @apply bg-[#ff8a3c] text-white px-4 py-2 rounded-full hover:bg-[#e67a2e] transition-all flex items-center justify-center gap-2;
+}
+
+
+.btn-outline {
+  @apply border border-[#ff8a3c] text-[#ff8a3c] px-4 py-2 rounded-full hover:bg-[#ff8a3c] hover:text-white transition-all flex items-center justify-center;
+}
+
+.page-header {
+  @apply bg-[#1e293b] text-white py-12 relative overflow-hidden;
+}
+
+.page-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.1;
+}
+
+.specialist-card {
+  @apply bg-white rounded-lg p-6 flex flex-col items-center justify-center transition-all hover:shadow-lg;
+}
+
+.doctor-card {
+  @apply bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all;
+}
+
+.input-field {
+  @apply w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ff8a3c] focus:border-transparent;
+}
+
+.section-title {
+  @apply text-2xl md:text-3xl font-bold mb-6;
+}
+
+.section-subtitle {
+  @apply text-sm text-[#ff8a3c] uppercase font-medium mb-2;
+}
+
+.specialty-icon {
+  @apply w-16 h-16 flex items-center justify-center rounded-full bg-[#fff2e7] text-[#ff8a3c];
+}
+
+.process-step-icon {
+  @apply w-20 h-20 flex items-center justify-center rounded-full bg-white shadow-sm text-[#ff8a3c];
+}
+
+.process-arrow {
+  @apply hidden md:block absolute ml-40 text-[#ff8a3c];
+}
+
+.contact-card {
+  @apply bg-white rounded-lg p-6 flex flex-col items-center text-center relative overflow-hidden;
+}
+
+.contact-card-icon {
+  @apply w-16 h-16 flex items-center justify-center rounded-full bg-[#fff2e7] text-[#ff8a3c] mb-4;
+}
+
+.contact-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(to right, #f0f9ff 0%, #e1f5fe 50%, #f0f9ff 100%);
+  opacity: 0.3;
+  border-radius: 0 0 8px 8px;
+}
+
+.faq-item {
+  @apply border border-gray-200 rounded-lg overflow-hidden;
+}
+
+.faq-question {
+  @apply w-full flex items-center justify-between p-4 text-left font-medium;
+}
+
+.faq-answer {
+  @apply p-4 bg-gray-50 border-t border-gray-200 text-sm text-gray-600;
+}
+
+.time-slot {
+  @apply text-xs p-2 border border-gray-200 rounded hover:border-[#ff8a3c] hover:text-[#ff8a3c] transition-all;
+}
+
+.tab-button {
+  @apply px-4 py-3 transition-all;
+}
+
+.tab-button.active {
+  @apply bg-[#ff8a3c];
+}
+
+.tab-button:not(.active) {
+  @apply hover:bg-gray-700;
+}
+
+.breadcrumb-item {
+  @apply hover:text-[#ff8a3c] transition-colors;
+}
+
+.pagination-item {
+  @apply w-8 h-8 flex items-center justify-center rounded-full transition-all;
+}
+
+.pagination-item.active {
+  @apply bg-[#ff8a3c] text-white;
+}
+
+.pagination-item:not(.active) {
+  @apply bg-white text-gray-700 hover:bg-gray-100;
+}
+
+.footer-link {
+  @apply text-sm text-gray-400 hover:text-[#ff8a3c] transition-colors;
+}
+
+.footer-contact-item {
+  @apply flex items-start space-x-3;
+}
+
+.footer-contact-icon {
+  @apply text-[#ff8a3c] mt-1;
+}
+
+.footer-heading {
+  @apply text-lg font-bold mb-4;
+}
+
+.emergency-call {
+  @apply border border-gray-700 rounded-lg p-6;
+}
+
+.newsletter {
+  @apply border border-gray-700 rounded-lg p-6;
+}
+
+.newsletter-input {
+  @apply bg-gray-700 text-white px-4 py-2 rounded-l-md w-full focus:outline-none;
+}
+
+.newsletter-button {
+  @apply bg-[#ff8a3c] text-white px-4 py-2 rounded-r-md hover:bg-[#e67a2e] transition-all flex items-center space-x-1;
+}
+
