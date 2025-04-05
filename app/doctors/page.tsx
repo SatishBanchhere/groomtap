@@ -1,9 +1,11 @@
+"use client"
 import PageHeader from "@/components/shared/page-header"
 import DoctorSearch from "@/components/doctors/doctor-search"
 import DoctorResults from "@/components/doctors/doctor-results"
 import Pagination from "@/components/shared/pagination"
-import { getDocs, collection } from "firebase/firestore"
-import { db } from "@/lib/firebase"
+import AnimatedLayout from "@/components/shared/animated-layout"
+import AnimatedSection from "@/components/shared/animated-section"
+import { getDoctors } from "@/lib/firebase/doctors"
 
 type Availability = {
   Monday: boolean;
@@ -54,15 +56,23 @@ export default async function DoctorsPage() {
   const doctors = await getDoctors()
 
   return (
-    <div>
+    <AnimatedLayout>
       <PageHeader title="Search Doctors" breadcrumb={["Home", "Search Doctors"]} />
-      <div className="bg-[#f8f5ef] py-6">
+      <div className="bg-background py-6">
         <div className="container mx-auto px-4">
-          <DoctorSearch />
-          <DoctorResults doctors={doctors} />
-          <Pagination />
+          <AnimatedSection animation="slideUp" delay={0.2}>
+            <DoctorSearch />
+          </AnimatedSection>
+          
+          <AnimatedSection animation="fadeIn" delay={0.4}>
+            <DoctorResults doctors={doctors} />
+          </AnimatedSection>
+          
+          <AnimatedSection animation="slideUp" delay={0.6}>
+            <Pagination />
+          </AnimatedSection>
         </div>
       </div>
-    </div>
+    </AnimatedLayout>
   )
 }
