@@ -1,11 +1,12 @@
-"use client"
+// "use client"
 import PageHeader from "@/components/shared/page-header"
 import DoctorSearch from "@/components/doctors/doctor-search"
 import DoctorResults from "@/components/doctors/doctor-results"
 import Pagination from "@/components/shared/pagination"
 import AnimatedLayout from "@/components/shared/animated-layout"
 import AnimatedSection from "@/components/shared/animated-section"
-import { getDoctors } from "@/lib/firebase/doctors"
+import { getDocs, collection } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 type Availability = {
   Monday: boolean;
