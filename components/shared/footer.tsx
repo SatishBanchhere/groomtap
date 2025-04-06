@@ -31,25 +31,25 @@ export default function Footer() {
               <h3 className="text-lg font-semibold mb-6">About</h3>
               <ul className="space-y-4">
                 <li>
-                  <Link href="/about" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  <Link href="/about-us" className="block text-gray-400 hover:text-white transition-colors text-sm">
                     About Us
                   </Link>
                 </li>
                 <li>
-                  <Link href="/contact" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  <Link href="/contact-us" className="block text-gray-400 hover:text-white transition-colors text-sm">
                     Contact Us
                   </Link>
                 </li>
                 <li>
-                  <Link href="/download" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  <Link href="/" className="block text-gray-400 hover:text-white transition-colors text-sm">
                     Download apps
                   </Link>
                 </li>
-                <li>
-                  <Link href="/privacy" className="block text-gray-400 hover:text-white transition-colors text-sm">
-                    Privacy Policy
-                  </Link>
-                </li>
+                {/*<li>*/}
+                {/*  <Link href="/privacy" className="block text-gray-400 hover:text-white transition-colors text-sm">*/}
+                {/*    Privacy Policy*/}
+                {/*  </Link>*/}
+                {/*</li>*/}
               </ul>
             </div>
 
@@ -68,8 +68,13 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/join" className="block text-gray-400 hover:text-white transition-colors text-sm">
-                    Join As Doctor
+                  <Link href="/tool" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                    Join As Hospital
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/tool" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                    Join As Lab
                   </Link>
                 </li>
               </ul>
