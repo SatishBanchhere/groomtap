@@ -73,160 +73,118 @@ export default function EmergencyCard({ hospital }: EmergencyCardProps) {
                 additionalDetails,
                 status: "Pending",
                 timestamp: new Date(),
-                // These should come from your auth system:
-                userId: "",
-                userEmail: ""
+                userId: "",     // Replace with actual auth user id if available
+                userEmail: ""   // Replace with actual auth user email if available
             }
 
             await addDoc(collection(db, "emergencyData"), emergencyBooking)
+            setIsBookingOpen(false)
             router.push("/appointments")
         } catch (error) {
-            console.error("Error booking emergency:", error)
+            console.error("Booking failed:", error)
         } finally {
             setIsSubmitting(false)
-            setIsBookingOpen(false)
         }
     }
 
     return (
-        <>
-            <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="p-6">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <h3 className="text-lg font-bold text-red-600">{hospital.fullName}</h3>
-                            <div className="flex items-center mt-1">
-                                <AlertTriangle className="w-4 h-4 text-red-500 mr-1" />
-                                <span className="text-sm font-medium">
-                  {hospital.emergencyServices?.length} Emergency Service(s)
-                </span>
-                            </div>
+        <div className="border rounded-xl p-4 shadow-md bg-white space-y-4">
+            {hospital.imageUrl ? (
+                <img
+                    src={hospital.imageUrl}
+                    alt={hospital.fullName}
+                    className="w-full h-48 object-cover rounded-lg"
+                />
+            ) : (
+                <img
+                    src="/emergency.jpg"
+                    alt={hospital.fullName}
+                    className="w-full h-48 object-cover rounded-lg"
+                />
+            )}
+
+            <div className="space-y-2">
+                <h2 className="text-xl font-semibold">{hospital.fullName}</h2>
+                <div className="flex items-center text-sm text-gray-600">
+                <MapPin className="w-4 h-4 mr-1" />
+                    {hospital.location.address}, {hospital.location.city}
+                </div>
+                <div className="flex flex-col gap-1 mt-2">
+                    {hospital.emergencyServices.map(service => (
+                        <div key={service.name} className="flex items-center gap-2 text-sm">
+                            <AlertTriangle className="w-4 h-4 text-red-500" />
+                            <span>{service.name}</span>
+                            <Clock className="w-4 h-4 ml-2" />
+                            <span>
+                                {service.is24x7 ? "24x7" : `${service.startTime} - ${service.endTime}`}
+                            </span>
                         </div>
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                            hospital.status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                        }`}>
-              {hospital.status}
-            </span>
-                    </div>
-
-                    <div className="mt-4 space-y-2">
-                        <div className="flex items-center text-sm text-gray-600">
-                            <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                            <span>{hospital.location.district}, {hospital.location.state}</span>
-                        </div>
-                        <div className="flex items-center text-sm text-gray-600">
-                            <Clock className="w-4 h-4 mr-2 text-gray-500" />
-                                <span>
-                                  {hospital.emergencyServices?.some(s => s.is24x7)
-                                      ? "24/7 Available"
-                                      : hospital.emergencyServices && hospital.emergencyServices.length > 0
-                                          ? `Open: ${hospital.emergencyServices[0].startTime} - ${hospital.emergencyServices[0].endTime}`
-                                          : "Timing not available"}
-                                </span>
-
-                        </div>
-                    </div>
-
-                    <div className="mt-4">
-                        <p className="text-sm font-medium text-gray-700">Available Services:</p>
-                        <ul className="mt-1 space-y-1">
-                            {hospital.emergencyServices.map((service, index) => (
-                                <li key={index} className="text-sm text-gray-600">
-                                    • {service.name} {service.is24x7 && "(24/7)"}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    <div className="mt-6">
-                        <Button
-                            onClick={() => setIsBookingOpen(true)}
-                            className="w-full bg-red-600 hover:bg-red-700"
-                        >
-                            Book Emergency Service
-                        </Button>
-                    </div>
+                    ))}
                 </div>
             </div>
+
+            <Button onClick={() => setIsBookingOpen(true)}>Book Emergency</Button>
 
             <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Book Emergency Service</DialogTitle>
                         <DialogDescription>
-                            Fill in details for emergency at {hospital.name}
+                            Fill in the details to request emergency assistance.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="patientName" className="text-right">
-                                Patient Name
-                            </Label>
+
+                    <div className="space-y-4 py-2">
+                        <div>
+                            <Label htmlFor="name">Patient Name</Label>
                             <Input
-                                id="patientName"
+                                id="name"
                                 value={patientName}
-                                onChange={(e) => setPatientName(e.target.value)}
-                                className="col-span-3"
-                                required
+                                onChange={e => setPatientName(e.target.value)}
                             />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="phoneNumber" className="text-right">
-                                Phone Number
-                            </Label>
+                        <div>
+                            <Label htmlFor="phone">Phone Number</Label>
                             <Input
-                                id="phoneNumber"
+                                id="phone"
                                 type="tel"
                                 value={phoneNumber}
-                                onChange={(e) => setPhoneNumber(e.target.value)}
-                                className="col-span-3"
-                                required
+                                onChange={e => setPhoneNumber(e.target.value)}
                             />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="emergencyService" className="text-right">
-                                Emergency Service
-                            </Label>
+                        <div>
+                            <Label htmlFor="service">Select Service</Label>
                             <select
-                                id="emergencyService"
+                                id="service"
                                 value={selectedService}
-                                onChange={(e) => setSelectedService(e.target.value)}
-                                className="col-span-3 border rounded-md px-3 py-2"
-                                required
+                                onChange={e => setSelectedService(e.target.value)}
+                                className="w-full border p-2 rounded-md"
                             >
-                                <option value="">Select a service</option>
-                                {hospital.emergencyServices.map((service, index) => (
-                                    <option key={index} value={service.name}>
-                                        {service.name} {service.is24x7 ? '(24/7)' : `(${service.startTime}-${service.endTime})`}
+                                <option value="">-- Select --</option>
+                                {hospital.emergencyServices.map(service => (
+                                    <option key={service.name} value={service.name}>
+                                        {service.name}
                                     </option>
                                 ))}
                             </select>
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="additionalDetails" className="text-right">
-                                Additional Details
-                            </Label>
+                        <div>
+                            <Label htmlFor="details">Additional Details</Label>
                             <Input
-                                id="additionalDetails"
+                                id="details"
                                 value={additionalDetails}
-                                onChange={(e) => setAdditionalDetails(e.target.value)}
-                                className="col-span-3"
-                                placeholder="Describe the emergency"
+                                onChange={e => setAdditionalDetails(e.target.value)}
                             />
                         </div>
                     </div>
+
                     <DialogFooter>
-                        <Button
-                            type="button"
-                            onClick={handleBookEmergency}
-                            disabled={isSubmitting || !patientName || !phoneNumber || !selectedService}
-                            className="bg-red-600 hover:bg-red-700"
-                        >
-                            {isSubmitting ? "Booking..." : "Confirm Emergency Booking"}
+                        <Button onClick={handleBookEmergency} disabled={isSubmitting}>
+                            {isSubmitting ? "Booking..." : "Submit"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </>
+        </div>
     )
 }

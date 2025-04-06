@@ -324,9 +324,12 @@ export default function HealthcareSearchPage() {
                         onChange={(e) => setSpecialtyFilter(e.target.value)}
                     >
                       <option value="">All Specialties</option>
-                      {specialties.map(specialty => (
-                          <option key={specialty} value={specialty}>{specialty}</option>
+                      {[...new Set(specialties)].map((specialty, index) => (
+                          <option key={`${specialty}-${index}`} value={specialty}>
+                            {specialty}
+                          </option>
                       ))}
+
                     </select>
                   </div>
 

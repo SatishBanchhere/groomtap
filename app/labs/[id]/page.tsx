@@ -1,16 +1,15 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { doc, getDoc, collection, query, where, getDocs, addDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
-import { Share2, Heart } from 'lucide-react';
+import { Share2, Heart, Star } from 'lucide-react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import PageHeader from '@/components/shared/page-header';
-import {Lab} from '@/types/lab'
 
 type TimeSlot = {
   start: string;
@@ -34,18 +33,40 @@ type Schedule = {
 };
 
 type Test = {
-  name: string;  // name is unique
+  name: string;
   serviceType: string;
-  charge?: string;  // for 'visit' or 'home' only
-  homeCharge?: string;  // for 'both' serviceType
-  visitCharge?: string;  // for 'both' serviceType
+  charge?: string;
+  homeCharge?: string;
+  visitCharge?: string;
 };
 
 type BookingFormData = {
   phoneNumber: string;
   patientName: string;
   paymentMethod: 'razorpay' | null;
-  selectedTests: { name: string; serviceType: string }[]; // using name as unique identifier
+  selectedTests: { name: string; serviceType: string }[];
+};
+
+type Review = {
+  id: string;
+  userId: string;
+  userName: string;
+  userImage?: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+};
+
+type Lab = {
+  id: string;
+  fullName: string;
+  about: string;
+  location: {
+    address: string;
+  };
+  whatsapp: string;
+  imageUrl?: string;
+  specialties: Test[];
 };
 
 const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -86,9 +107,16 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
     selectedTests: []
   });
   const [activeTab, setActiveTab] = useState<'about' | 'services' | 'healthcare' | 'review'>('about');
-  //@ts-ignore
-  const {id} = use(params);
   const [isOpen, setIsOpen] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [newReview, setNewReview] = useState({
+    rating: 0,
+    comment: '',
+  });
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [averageRating, setAverageRating] = useState(0);
+  //@ts-ignore
+  const { id } = useParams();
 
   function closeModal() {
     setIsOpen(false);
@@ -99,16 +127,33 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
   }
 
   useEffect(() => {
-    const fetchLabs = async () => {
+    const fetchLabAndReviews = async () => {
       const docRef = doc(db, 'lab_form', id);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setLab({ id: docSnap.id, ...docSnap.data() } as Lab);
         setTests(docSnap.data().specialties as Test[]);
       }
+
+      // Fetch reviews
+      const reviewsRef = collection(db, `lab_form/${id}/reviews`);
+      const querySnapshot = await getDocs(reviewsRef);
+      const reviewsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Review[];
+      setReviews(reviewsData);
+
+      // Calculate average rating
+      if (reviewsData.length > 0) {
+        const total = reviewsData.reduce((sum, review) => sum + review.rating, 0);
+        setAverageRating(total / reviewsData.length);
+      }
+
       setLoading(false);
     };
-    fetchLabs();
+
+    fetchLabAndReviews();
   }, [id]);
 
   useEffect(() => {
@@ -207,6 +252,40 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
       console.error('Error booking appointment:', error);
     }
   };
+
+  const handleReviewSubmit = async () => {
+    if (!user || !newReview.comment || newReview.rating === 0) return;
+
+    try {
+      const reviewData = {
+        userId: user.uid,
+        userName: user.displayName || 'Anonymous',
+        userImage: user.photoURL || '',
+        rating: newReview.rating,
+        comment: newReview.comment,
+        createdAt: new Date().toISOString()
+      };
+
+      await addDoc(collection(db, `lab_form/${id}/reviews`), reviewData);
+
+      // Update local state
+      setReviews([...reviews, { id: Date.now().toString(), ...reviewData }]);
+
+      // Update average rating
+      const newTotal = [...reviews, reviewData].reduce((sum, review) => sum + review.rating, 0);
+      setAverageRating(newTotal / (reviews.length + 1));
+
+      // Reset form
+      setNewReview({
+        rating: 0,
+        comment: '',
+      });
+      setShowReviewForm(false);
+    } catch (error) {
+      console.error('Error submitting review:', error);
+    }
+  };
+
   if (loading) {
     return (
         <div className="flex justify-center items-center min-h-screen">
@@ -236,7 +315,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                       {lab.imageUrl ? (
                           <Image
                               src={lab.imageUrl}
-                              alt={`Profile photo of Dr. ${lab.fullName}`}
+                              alt={`Profile photo of ${lab.fullName}`}
                               fill
                               className="rounded-lg object-cover"
                           />
@@ -262,8 +341,9 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1">
-                          <span className="text-sm text-gray-500">⭐️ 0.0</span>
-                          <span className="text-sm text-gray-400">(0)</span>
+                        <span className="text-sm text-gray-500">
+                          ⭐️ {averageRating.toFixed(1)} ({reviews.length})
+                        </span>
                         </div>
                         <div className="text-sm text-gray-500">
                           📍 {lab.location?.address}
@@ -296,8 +376,112 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
 
                 {activeTab === 'about' && (
                     <div>
-                      <h3 className="font-bold mb-4">About Dr. {lab.fullName}</h3>
+                      <h3 className="font-bold mb-4">About {lab.fullName}</h3>
                       <p className="text-gray-600">{lab.about}</p>
+                    </div>
+                )}
+
+                {activeTab === 'review' && (
+                    <div>
+                      <div className="flex justify-between items-center mb-6">
+                        <h3 className="font-bold">Reviews</h3>
+                        <button
+                            onClick={() => {
+                              if (!user) {
+                                signInWithGoogle();
+                                return;
+                              }
+                              setShowReviewForm(true);
+                            }}
+                            className="bg-[#ff8a3c] text-white px-4 py-2 rounded-md hover:bg-[#ff7a2c]"
+                        >
+                          Write a Review
+                        </button>
+                      </div>
+
+                      {showReviewForm && (
+                          <div className="mb-8 p-4 border rounded-lg">
+                            <h4 className="font-medium mb-4">Write Your Review</h4>
+                            <div className="flex items-center mb-4">
+                              <p className="mr-2">Rating:</p>
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                  <button
+                                      key={star}
+                                      onClick={() => setNewReview({ ...newReview, rating: star })}
+                                      className="text-2xl"
+                                  >
+                                    {star <= newReview.rating ? '★' : '☆'}
+                                  </button>
+                              ))}
+                            </div>
+                            <textarea
+                                value={newReview.comment}
+                                onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                                placeholder="Share your experience..."
+                                className="w-full p-2 border rounded-md mb-4 h-24"
+                            />
+                            <div className="flex justify-end gap-2">
+                              <button
+                                  onClick={() => setShowReviewForm(false)}
+                                  className="px-4 py-2 border rounded-md"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                  onClick={handleReviewSubmit}
+                                  disabled={!newReview.comment || newReview.rating === 0}
+                                  className="bg-[#ff8a3c] text-white px-4 py-2 rounded-md hover:bg-[#ff7a2c] disabled:opacity-50"
+                              >
+                                Submit
+                              </button>
+                            </div>
+                          </div>
+                      )}
+
+                      {reviews.length === 0 ? (
+                          <p className="text-gray-500">No reviews yet. Be the first to review!</p>
+                      ) : (
+                          <div className="space-y-6">
+                            {reviews.map((review) => (
+                                <div key={review.id} className="border-b pb-4">
+                                  <div className="flex items-center gap-3 mb-2">
+                                    {review.userImage ? (
+                                        <Image
+                                            src={review.userImage}
+                                            alt={review.userName}
+                                            width={40}
+                                            height={40}
+                                            className="rounded-full"
+                                        />
+                                    ) : (
+                                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                <span className="text-lg font-bold text-gray-400">
+                                  {review.userName.charAt(0)}
+                                </span>
+                                        </div>
+                                    )}
+                                    <div>
+                                      <p className="font-medium">{review.userName}</p>
+                                      <div className="flex items-center">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star
+                                                key={i}
+                                                className={`w-4 h-4 ${
+                                                    i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                                                }`}
+                                            />
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <p className="text-gray-600">{review.comment}</p>
+                                  <p className="text-sm text-gray-400 mt-2">
+                                    {new Date(review.createdAt).toLocaleDateString()}
+                                  </p>
+                                </div>
+                            ))}
+                          </div>
+                      )}
                     </div>
                 )}
               </div>
@@ -530,58 +714,6 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                     leaveFrom="opacity-100 scale-100"
                     leaveTo="opacity-0 scale-95"
                 >
-                  {/*<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">*/}
-                  {/*  <Dialog.Title*/}
-                  {/*      as="h3"*/}
-                  {/*      className="text-lg font-medium leading-6 text-gray-900"*/}
-                  {/*  >*/}
-                  {/*    Confirm Your Lab Tests*/}
-                  {/*  </Dialog.Title>*/}
-                  {/*  <div className="mt-4">*/}
-                  {/*    <p className="text-sm text-gray-500">*/}
-                  {/*      <strong>Lab:</strong> {lab?.fullName}<br />*/}
-                  {/*      <strong>Date:</strong> {selectedDate && formatDate(selectedDate)}<br />*/}
-                  {/*      <strong>Time:</strong> {selectedTimeSlot?.start}<br />*/}
-                  {/*      <strong>Patient:</strong> {bookingData.patientName}<br />*/}
-                  {/*      <strong>Phone:</strong> {bookingData.phoneNumber}<br />*/}
-                  {/*      <strong>Total Charge:</strong> ₹{calculateTotalCharge()}<br />*/}
-
-                  {/*      <strong className="block mt-2">Selected Tests:</strong>*/}
-                  {/*      <ul className="list-disc pl-5 mt-1 space-y-1">*/}
-                  {/*        {bookingData.selectedTests.map((selectedTest, index) => {*/}
-                  {/*          const test = tests?.find(t => t.id === selectedTest.id);*/}
-                  {/*          const charge = selectedTest.serviceType === 'home' ?*/}
-                  {/*              test?.homeCharge : test?.visitCharge;*/}
-                  {/*          return (*/}
-                  {/*              <li key={index}>*/}
-                  {/*                {test?.name} ({selectedTest.serviceType === 'home' ? 'Home' : 'Lab'}) - ₹{charge}*/}
-                  {/*              </li>*/}
-                  {/*          );*/}
-                  {/*        })}*/}
-                  {/*      </ul>*/}
-                  {/*    </p>*/}
-                  {/*  </div>*/}
-
-                  {/*  <div className="mt-6 flex gap-3">*/}
-                  {/*    <button*/}
-                  {/*        type="button"*/}
-                  {/*        className="inline-flex justify-center rounded-md border border-transparent bg-[#ff8a3c] px-4 py-2 text-sm font-medium text-white hover:bg-[#ff7a2c] focus:outline-none"*/}
-                  {/*        onClick={() => {*/}
-                  {/*          closeModal();*/}
-                  {/*          router.push('/appointments');*/}
-                  {/*        }}*/}
-                  {/*    >*/}
-                  {/*      Confirm Booking*/}
-                  {/*    </button>*/}
-                  {/*    <button*/}
-                  {/*        type="button"*/}
-                  {/*        className="inline-flex justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"*/}
-                  {/*        onClick={closeModal}*/}
-                  {/*    >*/}
-                  {/*      Cancel*/}
-                  {/*    </button>*/}
-                  {/*  </div>*/}
-                  {/*</Dialog.Panel>*/}
                   <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                     <Dialog.Title
                         as="h3"
@@ -618,13 +750,14 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                         </ul>
                       </p>
                     </div>
+
                     <div className="mt-6 flex gap-3">
                       <button
                           type="button"
                           className="inline-flex justify-center rounded-md border border-transparent bg-[#ff8a3c] px-4 py-2 text-sm font-medium text-white hover:bg-[#ff7a2c] focus:outline-none"
                           onClick={() => {
                             closeModal();
-                            // router.push('/appointments');
+                            router.push('/appointments');
                           }}
                       >
                         Confirm Booking

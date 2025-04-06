@@ -6,7 +6,8 @@ import Footer from "@/components/shared/footer"
 import GoToTop from "@/components/shared/go-to-top"
 import { AuthProvider } from "@/contexts/auth-context"
 import { Toaster } from "sonner"
-
+import TopBar from '@/components/layout/top-bar'
+import './globals.css'
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -22,7 +23,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+
         <AuthProvider>
+          <TopBar/>
           <Navbar />
           <main className="min-h-screen">
             {children}
@@ -35,7 +38,3 @@ export default function RootLayout({
     </html>
   )
 }
-
-
-
-import './globals.css'

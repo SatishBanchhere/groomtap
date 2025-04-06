@@ -33,7 +33,7 @@ export default function HeroSection() {
           }
         }}
       />
-      
+
       {/* Floating shapes background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-20 w-64 h-64 bg-primary-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
@@ -94,12 +94,12 @@ export default function HeroSection() {
                   placeholder="Ex. Doctor Name"
                   className="w-full px-6 py-5 pr-16 text-lg rounded-full border-2 border-primary-100 focus:border-primary-400 focus:outline-none shadow-lg bg-background/80 backdrop-blur-sm transition-all"
                 />
-                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-primary-400" size={20} />
+                {/*<Search className="absolute left-6 top-1/2 -translate-y-1/2 text-primary-400" size={20} />*/}
                 <button
                   type="submit"
                   className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary-500 text-white p-4 rounded-full hover:bg-primary-600 transition-colors group"
                 >
-                  <ArrowRight 
+                  <ArrowRight
                     size={24}
                     className="transform group-hover:translate-x-1 transition-transform"
                   />

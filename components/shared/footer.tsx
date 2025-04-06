@@ -31,12 +31,12 @@ export default function Footer() {
               <h3 className="text-lg font-semibold mb-6">About</h3>
               <ul className="space-y-4">
                 <li>
-                  <Link href="/about-us" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  <Link href="/aboutus" className="block text-gray-400 hover:text-white transition-colors text-sm">
                     About Us
                   </Link>
                 </li>
                 <li>
-                  <Link href="/contact-us" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  <Link href="/contactus" className="block text-gray-400 hover:text-white transition-colors text-sm">
                     Contact Us
                   </Link>
                 </li>
@@ -58,7 +58,7 @@ export default function Footer() {
               <h3 className="text-lg font-semibold mb-6">Useful Links</h3>
               <ul className="space-y-4">
                 <li>
-                  <Link href="/specialists" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  <Link href="/specialist" className="block text-gray-400 hover:text-white transition-colors text-sm">
                     Specialist
                   </Link>
                 </li>

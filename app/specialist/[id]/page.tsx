@@ -145,7 +145,7 @@ export default function SpecialtyDetailPage({ params }: { params: { id: string }
                     />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg mb-1">{doctor.name}</h3>
+                    <h3 className="font-semibold text-lg mb-1">{doctor.fullName}</h3>
                     <p className="text-gray-600 text-sm mb-2">{doctor.specialty}</p>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <div className="flex items-center">
@@ -174,4 +174,4 @@ export default function SpecialtyDetailPage({ params }: { params: { id: string }
       </div>
     </div>
   )
-} 
+}

@@ -27,7 +27,7 @@ export default function SpecialistGrid() {
 
 function SpecialistCard({ title }: { title: string }) {
   return (
-    <Link href={`/specialist/${title.toLowerCase()}`} className="specialist-card">
+    <Link href={`/viewspecialist/${title.toLowerCase()}`} className="specialist-card">
       <SpecialtyIcon specialty={title} size={32} />
       <h3 className="font-medium text-center mt-4">{title}</h3>
       <div className="mt-4 bg-[#fff2e7] rounded-full p-2 w-8 h-8 flex items-center justify-center">

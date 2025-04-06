@@ -15,11 +15,6 @@ export default function TopBar() {
             <span className="text-sm">+91 9470075205</span>
           </div>
         </div>
-        <div>
-          <Link href="/sign-in" className="text-sm hover:text-[#ff8a3c] transition-colors">
-            Sign in
-          </Link>
-        </div>
       </div>
     </div>
   )

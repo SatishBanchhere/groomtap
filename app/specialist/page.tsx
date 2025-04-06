@@ -66,7 +66,7 @@ export default function SpecialistPage() {
                 animation="scale"
                 delay={0.2 + index * 0.1}
               >
-                <Link 
+                <Link
                   href={`/specialist/${specialty.id}`}
                   className="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6 text-center"
                 >

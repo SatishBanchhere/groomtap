@@ -5,9 +5,12 @@ import AppDownload from "@/components/home/app-download"
 import AppointmentProcess from "@/components/shared/appointment-process"
 import EmergencyNewsletter from "@/components/shared/emergency-newsletter"
 
+
+
 export default function Home() {
   return (
     <div>
+
       <HeroSection />
       <SpecialistSection />
       {/* <TopRatedSpecialists /> */}

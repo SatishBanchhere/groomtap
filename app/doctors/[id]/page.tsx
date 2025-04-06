@@ -6,7 +6,7 @@ import { doc, getDoc, collection, query, where, getDocs, addDoc, updateDoc } fro
 import { db } from '@/lib/firebase';
 import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
-import { Share2, Heart } from 'lucide-react';
+import { Share2, Heart, Star } from 'lucide-react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import PageHeader from '@/components/shared/page-header';
@@ -58,6 +58,16 @@ type BookingFormData = {
   paymentMethod: 'razorpay' | null;
 };
 
+type Review = {
+  id: string;
+  userId: string;
+  userName: string;
+  userImage?: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+};
+
 const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const monthNames = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -94,9 +104,16 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
     paymentMethod: null
   });
   const [activeTab, setActiveTab] = useState<'about' | 'services' | 'healthcare' | 'review'>('about');
-  //@ts-ignore
-  const {id} = use(params);
   const [isOpen, setIsOpen] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [averageRating, setAverageRating] = useState(0);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [newReview, setNewReview] = useState({
+    rating: 0,
+    comment: '',
+  });
+  //@ts-ignore
+  const {id} = useParams();
 
   function closeModal() {
     setIsOpen(false);
@@ -106,18 +123,34 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
     setIsOpen(true);
   }
 
-
   useEffect(() => {
-    const fetchDoctor = async () => {
+    const fetchDoctorAndReviews = async () => {
+      // Fetch doctor details
       const docRef = doc(db, 'doctors', id);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setDoctor({ id: docSnap.id, ...docSnap.data() } as Doctor);
-        console.log(docSnap.data())
       }
+
+      // Fetch reviews
+      const reviewsRef = collection(db, `doctors/${id}/reviews`);
+      const querySnapshot = await getDocs(reviewsRef);
+      const reviewsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Review[];
+      setReviews(reviewsData);
+
+      // Calculate average rating
+      if (reviewsData.length > 0) {
+        const total = reviewsData.reduce((sum, review) => sum + review.rating, 0);
+        setAverageRating(total / reviewsData.length);
+      }
+
       setLoading(false);
     };
-    fetchDoctor();
+
+    fetchDoctorAndReviews();
   }, [id]);
 
   useEffect(() => {
@@ -132,9 +165,9 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
 
       const schedulesRef = collection(db, `doctors/${id}/schedules`);
       const q = query(
-        schedulesRef,
-        where('doctorId', '==', id),
-        where('day', '==', dayName)
+          schedulesRef,
+          where('doctorId', '==', id),
+          where('day', '==', dayName)
       );
 
       const querySnapshot = await getDocs(q);
@@ -158,10 +191,8 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
       return;
     }
     if (!selectedDate || !doctor) return;
-    console.log(timeSlot);
     setSelectedTimeSlot(timeSlot);
     setShowConfirmation(true);
-    // openModal();
   };
 
   const confirmBooking = async () => {
@@ -186,332 +217,466 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
       };
 
       await addDoc(collection(db, 'Appointments'), appointment);
-      setShowConfirmation(true);
-      handleBooking(selectedTimeSlot);
       openModal();
-      // router.push('/appointments');
     } catch (error) {
       console.error('Error booking appointment:', error);
     }
   };
 
+  const handleReviewSubmit = async () => {
+    if (!user || !newReview.comment || newReview.rating === 0) return;
+
+    try {
+      const reviewData = {
+        userId: user.uid,
+        userName: user.displayName || 'Anonymous',
+        userImage: user.photoURL || '',
+        rating: newReview.rating,
+        comment: newReview.comment,
+        createdAt: new Date().toISOString()
+      };
+
+      await addDoc(collection(db, `doctors/${id}/reviews`), reviewData);
+
+      // Update local state
+      setReviews([...reviews, { id: Date.now().toString(), ...reviewData }]);
+
+      // Update average rating
+      const newTotal = [...reviews, reviewData].reduce((sum, review) => sum + review.rating, 0);
+      setAverageRating(newTotal / (reviews.length + 1));
+
+      // Reset form
+      setNewReview({
+        rating: 0,
+        comment: '',
+      });
+      setShowReviewForm(false);
+    } catch (error) {
+      console.error('Error submitting review:', error);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        </div>
     );
   }
 
   if (!doctor) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-xl text-gray-600">Doctor not found</div>
-      </div>
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-xl text-gray-600">Doctor not found</div>
+        </div>
     );
   }
 
   return (
-    <div className="bg-[#f8f5ef] min-h-screen">
-      <PageHeader title="Doctor Details" breadcrumb={["Home", "Doctor Details"]} />
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex justify-between items-start mb-6">
-                <div className="flex gap-6">
-                  <div className="relative w-32 h-32">
-                    {doctor.imageUrl ? (
-                      <Image
-                        src={doctor.imageUrl}
-                        alt={`Profile photo of Dr. ${doctor.fullName}`}
-                        fill
-                        className="rounded-lg object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full rounded-lg bg-gray-200 flex items-center justify-center">
+      <div className="bg-[#f8f5ef] min-h-screen">
+        <PageHeader title="Doctor Details" breadcrumb={["Home", "Doctor Details"]} />
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-2">
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex justify-between items-start mb-6">
+                  <div className="flex gap-6">
+                    <div className="relative w-32 h-32">
+                      {doctor.imageUrl ? (
+                          <Image
+                              src={doctor.imageUrl}
+                              alt={`Profile photo of Dr. ${doctor.fullName}`}
+                              fill
+                              className="rounded-lg object-cover"
+                          />
+                      ) : (
+                          <div className="w-full h-full rounded-lg bg-gray-200 flex items-center justify-center">
                         <span className="text-2xl font-bold text-gray-400">
                           {doctor.fullName.charAt(0)}
                         </span>
+                          </div>
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-4 mb-2">
+                        <h1 className="text-2xl font-bold">{doctor.fullName}</h1>
+                        <div className="flex gap-2">
+                          <button className="p-2 hover:bg-gray-100 rounded-full">
+                            <Share2 className="w-5 h-5 text-gray-500" />
+                          </button>
+                          <button className="p-2 hover:bg-gray-100 rounded-full">
+                            <Heart className="w-5 h-5 text-gray-500" />
+                          </button>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-4 mb-2">
-                      <h1 className="text-2xl font-bold">{doctor.fullName}</h1>
-                      <div className="flex gap-2">
-                        <button className="p-2 hover:bg-gray-100 rounded-full">
-                          <Share2 className="w-5 h-5 text-gray-500" />
-                        </button>
-                        <button className="p-2 hover:bg-gray-100 rounded-full">
-                          <Heart className="w-5 h-5 text-gray-500" />
-                        </button>
+                      <p className="text-gray-600 mb-2">{doctor.specialty}</p>
+                      <p className="text-gray-500 text-sm mb-4">{doctor.qualifications}</p>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-yellow-400" />
+                          <span className="text-sm text-gray-500">{averageRating.toFixed(1)} ({reviews.length} reviews)</span>
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          📍 {doctor.location?.address}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          📞 {doctor.phone}
+                        </div>
                       </div>
                     </div>
-                    <p className="text-gray-600 mb-2">{doctor.specialty}</p>
-                    <p className="text-gray-500 text-sm mb-4">{doctor.qualifications}</p>
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm text-gray-500">⭐️ 0.0</span>
-                        <span className="text-sm text-gray-400">(0)</span>
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        📍 {doctor.location?.address}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        📞 {doctor.phone}
-                      </div>
-                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="border-b mb-6">
-                <div className="flex gap-6">
-                  {(['about', 'services', 'healthcare', 'review'] as const).map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`pb-4 px-2 text-sm font-medium capitalize ${
-                        activeTab === tab
-                          ? 'border-b-2 border-[#ff8a3c] text-[#ff8a3c]'
-                          : 'text-gray-500'
-                      }`}
-                    >
-                      {tab}
-                    </button>
-                  ))}
+                <div className="border-b mb-6">
+                  <div className="flex gap-6">
+                    {(['about', 'services', 'healthcare', 'review'] as const).map((tab) => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            className={`pb-4 px-2 text-sm font-medium capitalize ${
+                                activeTab === tab
+                                    ? 'border-b-2 border-[#ff8a3c] text-[#ff8a3c]'
+                                    : 'text-gray-500'
+                            }`}
+                        >
+                          {tab}
+                        </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {activeTab === 'about' && (
-                <div>
-                  <h3 className="font-bold mb-4">About Dr. {doctor.fullName}</h3>
-                  <p className="text-gray-600">{doctor.about || doctor.qualifications}</p>
-                </div>
-              )}
+                {activeTab === 'about' && (
+                    <div>
+                      <h3 className="font-bold mb-4">About Dr. {doctor.fullName}</h3>
+                      <p className="text-gray-600">{doctor.about || doctor.qualifications}</p>
+                    </div>
+                )}
+
+                {activeTab === 'review' && (
+                    <div>
+                      <div className="flex justify-between items-center mb-6">
+                        <h3 className="font-bold">Patient Reviews</h3>
+                        <button
+                            onClick={() => {
+                              if (!user) {
+                                signInWithGoogle();
+                                return;
+                              }
+                              setShowReviewForm(true);
+                            }}
+                            className="bg-[#ff8a3c] text-white px-4 py-2 rounded-md hover:bg-[#ff7a2c]"
+                        >
+                          Write a Review
+                        </button>
+                      </div>
+
+                      {showReviewForm && (
+                          <div className="mb-8 p-4 border rounded-lg">
+                            <h4 className="font-medium mb-4">Write Your Review</h4>
+                            <div className="flex items-center mb-4">
+                              <p className="mr-2">Rating:</p>
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                  <button
+                                      key={star}
+                                      onClick={() => setNewReview({ ...newReview, rating: star })}
+                                      className="text-2xl"
+                                  >
+                                    {star <= newReview.rating ? '★' : '☆'}
+                                  </button>
+                              ))}
+                            </div>
+                            <textarea
+                                value={newReview.comment}
+                                onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                                placeholder="Share your experience with this doctor..."
+                                className="w-full p-2 border rounded-md mb-4 h-24"
+                            />
+                            <div className="flex justify-end gap-2">
+                              <button
+                                  onClick={() => setShowReviewForm(false)}
+                                  className="px-4 py-2 border rounded-md"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                  onClick={handleReviewSubmit}
+                                  disabled={!newReview.comment || newReview.rating === 0}
+                                  className="bg-[#ff8a3c] text-white px-4 py-2 rounded-md hover:bg-[#ff7a2c] disabled:opacity-50"
+                              >
+                                Submit Review
+                              </button>
+                            </div>
+                          </div>
+                      )}
+
+                      {reviews.length === 0 ? (
+                          <p className="text-gray-500">No reviews yet. Be the first to review!</p>
+                      ) : (
+                          <div className="space-y-6">
+                            {reviews.map((review) => (
+                                <div key={review.id} className="border-b pb-4">
+                                  <div className="flex items-center gap-3 mb-2">
+                                    {review.userImage ? (
+                                        <Image
+                                            src={review.userImage}
+                                            alt={review.userName}
+                                            width={40}
+                                            height={40}
+                                            className="rounded-full"
+                                        />
+                                    ) : (
+                                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                <span className="text-lg font-bold text-gray-400">
+                                  {review.userName.charAt(0)}
+                                </span>
+                                        </div>
+                                    )}
+                                    <div>
+                                      <p className="font-medium">{review.userName}</p>
+                                      <div className="flex items-center">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star
+                                                key={i}
+                                                className={`w-4 h-4 ${
+                                                    i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                                                }`}
+                                            />
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <p className="text-gray-600">{review.comment}</p>
+                                  <p className="text-sm text-gray-400 mt-2">
+                                    {new Date(review.createdAt).toLocaleDateString()}
+                                  </p>
+                                </div>
+                            ))}
+                          </div>
+                      )}
+                    </div>
+                )}
+              </div>
             </div>
-          </div>
 
-          <div className="md:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-lg font-bold mb-4">Book Appointment</h2>
-              <p className="text-sm text-gray-500 mb-6">
-                Monday to Sunday: 9:30am - 7:pm
-              </p>
+            <div className="md:col-span-1">
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-lg font-bold mb-4">Book Appointment</h2>
+                <p className="text-sm text-gray-500 mb-6">
+                  Monday to Sunday: 9:30am - 7:pm
+                </p>
 
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Date
-                </label>
-                <input
-                  type="date"
-                  className="w-full p-2 border rounded-md"
-                  onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                  min={new Date().toISOString().split('T')[0]}
-                />
-              </div>
-
-              {selectedDate && schedule && (
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Time
+                    Select Date
                   </label>
-                  <select
-                    className="w-full p-2 border rounded-md"
-                    onChange={(e) => {
-                      const slot = schedule.timeSlots.find(s => s.start === e.target.value);
-                      if (slot) handleBooking(slot);
-                    }}
-                  >
-                    <option value="">Select time slot</option>
-                    {schedule.timeSlots
-                      .filter(slot => !slot.booked)
-                      .map((slot, index) => (
-                        <option key={index} value={slot.start}>
-                          {slot.start}
-                        </option>
-                      ))
-                    }
-                  </select>
-                </div>
-              )}
-
-              {showConfirmation && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
+                  <input
+                      type="date"
                       className="w-full p-2 border rounded-md"
-                      placeholder="Enter your phone number"
-                      value={bookingData.phoneNumber}
-                      onChange={(e) => setBookingData(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Patient Name
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full p-2 border rounded-md"
-                      placeholder="Enter patient name"
-                      value={bookingData.patientName}
-                      onChange={(e) => setBookingData(prev => ({ ...prev, patientName: e.target.value }))}
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="razorpay"
-                      checked={bookingData.paymentMethod === 'razorpay'}
-                      onChange={(e) => setBookingData(prev => ({
-                        ...prev,
-                        paymentMethod: e.target.checked ? 'razorpay' : null
-                      }))}
-                    />
-                    <label htmlFor="razorpay" className="text-sm text-gray-600">
-                      Pay with Razorpay
-                    </label>
-                  </div>
+                      onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                      min={new Date().toISOString().split('T')[0]}
+                  />
                 </div>
-              )}
 
-              <div className="mt-6">
-                <p className="text-sm text-gray-500 mb-2">
-                  Consultation Fee: ₹{doctor.consultationFee}
-                </p>
-                {showConfirmation ? (
-                  <div className="space-y-3">
-                    <button
-                      onClick={confirmBooking}
-                      disabled={!bookingData.phoneNumber || !bookingData.patientName}
-                      className="w-full py-2 px-4 bg-[#ff8a3c] text-white rounded-md hover:bg-[#ff7a2c] disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Book Appointment
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowConfirmation(false);
-                        setSelectedTimeSlot(null);
-                        setBookingData({
-                          phoneNumber: '',
-                          patientName: '',
-                          paymentMethod: null
-                        });
-                      }}
-                      className="w-full py-2 px-4 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  !user && (
-                    <button
-                      onClick={signInWithGoogle}
-                      className="w-full py-2 px-4 bg-[#ff8a3c] text-white rounded-md hover:bg-[#ff7a2c]"
-                    >
-                      Sign in to Book
-                    </button>
-                  )
+                {selectedDate && schedule && (
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Select Time
+                      </label>
+                      <select
+                          className="w-full p-2 border rounded-md"
+                          onChange={(e) => {
+                            const slot = schedule.timeSlots.find(s => s.start === e.target.value);
+                            if (slot) handleBooking(slot);
+                          }}
+                      >
+                        <option value="">Select time slot</option>
+                        {schedule.timeSlots
+                            .filter(slot => !slot.booked)
+                            .map((slot, index) => (
+                                <option key={index} value={slot.start}>
+                                  {slot.start}
+                                </option>
+                            ))
+                        }
+                      </select>
+                    </div>
                 )}
+
+                {showConfirmation && (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Phone Number
+                        </label>
+                        <input
+                            type="tel"
+                            className="w-full p-2 border rounded-md"
+                            placeholder="Enter your phone number"
+                            value={bookingData.phoneNumber}
+                            onChange={(e) => setBookingData(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Patient Name
+                        </label>
+                        <input
+                            type="text"
+                            className="w-full p-2 border rounded-md"
+                            placeholder="Enter patient name"
+                            value={bookingData.patientName}
+                            onChange={(e) => setBookingData(prev => ({ ...prev, patientName: e.target.value }))}
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id="razorpay"
+                            checked={bookingData.paymentMethod === 'razorpay'}
+                            onChange={(e) => setBookingData(prev => ({
+                              ...prev,
+                              paymentMethod: e.target.checked ? 'razorpay' : null
+                            }))}
+                        />
+                        <label htmlFor="razorpay" className="text-sm text-gray-600">
+                          Pay with Razorpay
+                        </label>
+                      </div>
+                    </div>
+                )}
+
+                <div className="mt-6">
+                  <p className="text-sm text-gray-500 mb-2">
+                    Consultation Fee: ₹{doctor.consultationFee}
+                  </p>
+                  {showConfirmation ? (
+                      <div className="space-y-3">
+                        <button
+                            onClick={confirmBooking}
+                            disabled={!bookingData.phoneNumber || !bookingData.patientName}
+                            className="w-full py-2 px-4 bg-[#ff8a3c] text-white rounded-md hover:bg-[#ff7a2c] disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Book Appointment
+                        </button>
+                        <button
+                            onClick={() => {
+                              setShowConfirmation(false);
+                              setSelectedTimeSlot(null);
+                              setBookingData({
+                                phoneNumber: '',
+                                patientName: '',
+                                paymentMethod: null
+                              });
+                            }}
+                            className="w-full py-2 px-4 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                  ) : (
+                      !user && (
+                          <button
+                              onClick={signInWithGoogle}
+                              className="w-full py-2 px-4 bg-[#ff8a3c] text-white rounded-md hover:bg-[#ff7a2c]"
+                          >
+                            Sign in to Book
+                          </button>
+                      )
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <Transition appear show={isOpen} as={Fragment}>
-  <Dialog as="div" className="relative z-10" onClose={closeModal}>
-    <Transition.Child
-      as={Fragment}
-      enter="ease-out duration-300"
-      enterFrom="opacity-0"
-      enterTo="opacity-100"
-      leave="ease-in duration-200"
-      leaveFrom="opacity-100"
-      leaveTo="opacity-0"
-    >
-      <div className="fixed inset-0 bg-black bg-opacity-25" />
-    </Transition.Child>
-
-    <div className="fixed inset-0 overflow-y-auto">
-      <div className="flex min-h-full items-center justify-center p-4 text-center">
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0 scale-95"
-          enterTo="opacity-100 scale-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100 scale-100"
-          leaveTo="opacity-0 scale-95"
-        >
-          <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-            <Dialog.Title
-              as="h3"
-              className="text-lg font-medium leading-6 text-gray-900"
+        <Transition appear show={isOpen} as={Fragment}>
+          <Dialog as="div" className="relative z-10" onClose={closeModal}>
+            <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0"
+                enterTo="opacity-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100"
+                leaveTo="opacity-0"
             >
-              Confirm Your Appointment
-            </Dialog.Title>
-            <div className="mt-4">
-              <p className="text-sm text-gray-500">
-                <strong>Doctor:</strong> {doctor?.fullName}<br />
-                <strong>Date:</strong> {selectedDate && formatDate(selectedDate)}<br />
-                <strong>Time:</strong> {selectedTimeSlot?.start}<br />
-                <strong>Patient:</strong> {bookingData.patientName}<br />
-                <strong>Phone:</strong> {bookingData.phoneNumber}<br />
-                <strong>Fee:</strong> ₹{doctor?.consultationFees}
-              </p>
-            </div>
+              <div className="fixed inset-0 bg-black bg-opacity-25" />
+            </Transition.Child>
 
-            <div className="mt-6 flex gap-3">
-              <button
-                type="button"
-                className="inline-flex justify-center rounded-md border border-transparent bg-[#ff8a3c] px-4 py-2 text-sm font-medium text-white hover:bg-[#ff7a2c] focus:outline-none"
-                onClick={async () => {
-                  try {
-                    const appointment = {
-                      doctorId: id,
-                      doctorName: doctor?.fullName,
-                      patientId: user?.uid,
-                      patientName: bookingData.patientName,
-                      phoneNumber: bookingData.phoneNumber,
-                      date: selectedDate && formatDateForFirebase(selectedDate),
-                      day: selectedDate && daysOfWeek[selectedDate.getDay()],
-                      timeSlot: selectedTimeSlot?.start,
-                      createdAt: new Date().toISOString(),
-                      status: 'scheduled',
-                      location: doctor?.location,
-                      consultationFees: doctor?.consultationFees,
-                      paymentMethod: bookingData.paymentMethod
-                    };
+            <div className="fixed inset-0 overflow-y-auto">
+              <div className="flex min-h-full items-center justify-center p-4 text-center">
+                <Transition.Child
+                    as={Fragment}
+                    enter="ease-out duration-300"
+                    enterFrom="opacity-0 scale-95"
+                    enterTo="opacity-100 scale-100"
+                    leave="ease-in duration-200"
+                    leaveFrom="opacity-100 scale-100"
+                    leaveTo="opacity-0 scale-95"
+                >
+                  <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                    <Dialog.Title
+                        as="h3"
+                        className="text-lg font-medium leading-6 text-gray-900"
+                    >
+                      Confirm Your Appointment
+                    </Dialog.Title>
+                    <div className="mt-4">
+                      <p className="text-sm text-gray-500">
+                        <strong>Doctor:</strong> {doctor?.fullName}<br />
+                        <strong>Date:</strong> {selectedDate && formatDate(selectedDate)}<br />
+                        <strong>Time:</strong> {selectedTimeSlot?.start}<br />
+                        <strong>Patient:</strong> {bookingData.patientName}<br />
+                        <strong>Phone:</strong> {bookingData.phoneNumber}<br />
+                        <strong>Fee:</strong> ₹{doctor?.consultationFee}
+                      </p>
+                    </div>
 
-                    await addDoc(collection(db, 'Appointments'), appointment);
-                    closeModal();
-                    // router.push('/appointments');
-                  } catch (error) {
-                    console.error('Error booking appointment:', error);
-                  }
-                }}
-              >
-                Confirm Booking
-              </button>
-              <button
-                type="button"
-                className="inline-flex justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
-                onClick={closeModal}
-              >
-                Cancel
-              </button>
+                    <div className="mt-6 flex gap-3">
+                      <button
+                          type="button"
+                          className="inline-flex justify-center rounded-md border border-transparent bg-[#ff8a3c] px-4 py-2 text-sm font-medium text-white hover:bg-[#ff7a2c] focus:outline-none"
+                          onClick={async () => {
+                            try {
+                              const appointment = {
+                                doctorId: id,
+                                doctorName: doctor?.fullName,
+                                patientId: user?.uid,
+                                patientName: bookingData.patientName,
+                                phoneNumber: bookingData.phoneNumber,
+                                date: selectedDate && formatDateForFirebase(selectedDate),
+                                day: selectedDate && daysOfWeek[selectedDate.getDay()],
+                                timeSlot: selectedTimeSlot?.start,
+                                createdAt: new Date().toISOString(),
+                                status: 'scheduled',
+                                location: doctor?.location,
+                                consultationFees: doctor?.consultationFee,
+                                paymentMethod: bookingData.paymentMethod
+                              };
+
+                              await addDoc(collection(db, 'Appointments'), appointment);
+                              closeModal();
+                              // router.push('/appointments');
+                            } catch (error) {
+                              console.error('Error booking appointment:', error);
+                            }
+                          }}
+                      >
+                        Confirm Booking
+                      </button>
+                      <button
+                          type="button"
+                          className="inline-flex justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
+                          onClick={closeModal}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </Dialog.Panel>
+                </Transition.Child>
+              </div>
             </div>
-          </Dialog.Panel>
-        </Transition.Child>
+          </Dialog>
+        </Transition>
       </div>
-    </div>
-  </Dialog>
-</Transition>
-    </div>
   );
 }

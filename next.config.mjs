@@ -1,12 +1,12 @@
-let userConfig = undefined
+let userConfig = undefined;
 try {
-  userConfig = await import('./v0-user-next.config')
+  userConfig = await import('./v0-user-next.config');
 } catch (e) {
   // ignore error
 }
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+let nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -21,28 +21,56 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
-}
+  async redirects() {
+    return [
+      {
+        source: '/viewdoctor/:id',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/searchdoctor',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/viewspecialist',
+        destination: '/specialist',
+        permanent: true,
+      },
+      {
+        source: '/doctorlogin',
+        destination: '/tool',
+        permanent: true,
+      },
+    ];
+  },
+};
 
-mergeConfig(nextConfig, userConfig)
+// Merge before exporting
+nextConfig = mergeConfig(nextConfig, userConfig);
 
 function mergeConfig(nextConfig, userConfig) {
-  if (!userConfig) {
-    return
-  }
+  if (!userConfig) return nextConfig;
+
+  const merged = { ...nextConfig };
 
   for (const key in userConfig) {
     if (
-      typeof nextConfig[key] === 'object' &&
-      !Array.isArray(nextConfig[key])
+        typeof merged[key] === 'object' &&
+        !Array.isArray(merged[key]) &&
+        typeof userConfig[key] === 'object'
     ) {
-      nextConfig[key] = {
-        ...nextConfig[key],
+      merged[key] = {
+        ...merged[key],
         ...userConfig[key],
-      }
+      };
     } else {
-      nextConfig[key] = userConfig[key]
+      merged[key] = userConfig[key];
     }
   }
+
+  return merged;
 }
 
-export default nextConfig
+export default nextConfig;

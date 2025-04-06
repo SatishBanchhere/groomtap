@@ -39,13 +39,13 @@ export default function Navbar() {
           <div className="flex items-center space-x-6">
             <nav className="hidden md:flex items-center space-x-6">
               <NavLink href="/" label="Home" />
-              <NavLink href="/about-us" label="About Us" />
+              <NavLink href="/aboutus" label="About Us" />
               <NavLink href="/specialist" label="Specialist" />
               <NavLink href="/doctors" label="Doctors" />
               <NavLink href="/hospitals" label="Hospitals" />
               <NavLink href="/labs" label="Labs" />
               <NavLink href="/emergency" label="Emergency Services" />
-              <NavLink href="/contact-us" label="Contact Us" />
+              <NavLink href="/contactus" label="Contact Us" />
               {/* {user && (
                 <NavLink href="/my-appointments" label="My Appointments" />
               )} */}

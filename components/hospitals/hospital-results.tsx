@@ -1,72 +1,67 @@
 "use client"
 
 import Link from "next/link"
-import { MapPin } from "lucide-react"
-import { Lab } from '@/types/lab'
+import { MapPin, Phone } from "lucide-react"
+import { Hospital } from '@/types/hospital'
 import { useSearchParams } from "next/navigation"
 
-type LabResultsProps = {
-    labs: (Lab & {
-        distance?: string;
-        distanceValue?: number;
-    })[];
+type HospitalResultsProps = {
+    hospitals: Hospital[];
 }
 
-export default function LabResults({ labs }: LabResultsProps) {
+export default function HospitalResults({ hospitals }: HospitalResultsProps) {
     const searchParams = useSearchParams()
-    const testFilter = searchParams.get('test') || 'All'
+    const specialtyFilter = searchParams.get('specialty') || 'All'
 
-    // Get unique test types for filter dropdown
-    const testTypes = ['All', ...new Set(labs?.flatMap(lab => lab.tests || []))]
+    // Get unique specialties for filter dropdown
+    const specialties = ['All', ...new Set(hospitals?.flatMap(hospital => hospital.specialties || []))]
 
-    // Filter labs based on search and test type
-    const filteredLabs = labs?.filter(lab => {
+    // Filter hospitals based on search and specialty
+    const filteredHospitals = hospitals?.filter(hospital => {
         const searchTerm = searchParams.get('search')?.toLowerCase() || ''
         const matchesSearch =
-            lab.fullName?.toLowerCase().includes(searchTerm) ||
-            lab.location?.city?.toLowerCase().includes(searchTerm) ||
-            lab.location?.state?.toLowerCase().includes(searchTerm) ||
-            (lab.specialties?.some(test => test.name.toLowerCase().includes(searchTerm))) ||
-            lab.serviceType?.toLowerCase().includes(searchTerm)
+            hospital.fullName?.toLowerCase().includes(searchTerm) ||
+            hospital.location?.city?.toLowerCase().includes(searchTerm) ||
+            hospital.location?.state?.toLowerCase().includes(searchTerm) ||
+            (hospital.specialties?.some(specialty => specialty.toLowerCase().includes(searchTerm)))
 
-        const matchesTest = testFilter === 'All' || lab.tests?.includes(testFilter)
+        const matchesSpecialty = specialtyFilter === 'All' || hospital.specialties?.includes(specialtyFilter)
 
-        return matchesSearch && matchesTest
+        return matchesSearch && matchesSpecialty
     })
 
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold">Showing {filteredLabs?.length} Results</h2>
+                <h2 className="text-xl font-bold">Showing {filteredHospitals?.length} Results</h2>
                 <div className="flex items-center space-x-2">
                     <span className="text-sm">Filter by:</span>
                     <select
                         className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none"
-                        value={testFilter}
+                        value={specialtyFilter}
                         onChange={(e) => {
                             const params = new URLSearchParams(searchParams.toString())
-                            params.set('test', e.target.value)
+                            params.set('specialty', e.target.value)
                             window.location.search = params.toString()
                         }}
                     >
-                        {testTypes.map(test => (
-                            <option key={test} value={test}>{test}</option>
+                        {specialties.map(specialty => (
+                            <option key={specialty} value={specialty}>{specialty}</option>
                         ))}
                     </select>
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredLabs?.map((lab) => (
-                    <LabCard
-                        key={lab.id}
-                        fullName={lab.fullName}
-                        imageUrl={lab.imageUrl}
-                        location={lab.location}
-                        tests={lab.tests || []}
-                        status={lab.status}
-                        id={lab.id}
-                        specialties={lab.specialties}
-                        distance={lab.distance}
+                {filteredHospitals?.map((hospital) => (
+                    <HospitalCard
+                        key={hospital.id}
+                        fullName={hospital.fullName}
+                        imageUrl={hospital.imageUrl}
+                        location={hospital.location}
+                        specialties={hospital.specialties || []}
+                        phone={hospital.phone}
+                        id={hospital.id}
+                        distance={hospital.distance}
                     />
                 ))}
             </div>
@@ -74,50 +69,42 @@ export default function LabResults({ labs }: LabResultsProps) {
     )
 }
 
-type Specialty = {
-    name: string;
-    visitCharge: number;
-    homeCharge: number;
-    serviceType: string;
-    charge: number;
-};
-
 type Location = {
     address: string;
     city: string;
-    district: string;
+    district?: string;
     pincode?: string;
     state: string;
+    lat?: number;
+    lng?: number;
 };
 
-type LabCardProps = {
+type HospitalCardProps = {
     fullName: string;
-    imageUrl: string;
+    imageUrl?: string;
     location: Location;
-    specialties?: Specialty[];
-    tests: string[];
-    status: string;
+    specialties: string[];
+    phone: string;
     id: string;
     distance?: string;
 };
 
-export function LabCard({
-                            fullName,
-                            imageUrl,
-                            location,
-                            specialties = [],
-                            tests,
-                            status,
-                            id,
-                            distance
-                        }: LabCardProps) {
+export function HospitalCard({
+                                 fullName,
+                                 imageUrl,
+                                 location,
+                                 specialties = [],
+                                 phone,
+                                 id,
+                                 distance
+                             }: HospitalCardProps) {
     const fullLocation = location ?
         `${location.address || ''}, ${location.city || ''}, ${location.district ? location.district + ', ' : ''}${location.state || ''}${location.pincode ? ' - ' + location.pincode : ''}`
         : '';
 
     return (
         <div className="border rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200">
-            <Link href={`/labs/${id}`} passHref>
+            <Link href={`/hospitals/${id}`} passHref>
                 <div className="cursor-pointer">
                     {/* Image Section */}
                     <div className="relative w-full h-48 bg-gray-100">
@@ -138,7 +125,7 @@ export function LabCard({
                             </div>
                         )}
 
-                        {/* Distance Badge (Positioned in top-right of image) */}
+                        {/* Distance Badge */}
                         {distance && (
                             <div className="absolute top-3 right-3">
                                 <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-1 rounded-full">
@@ -150,23 +137,20 @@ export function LabCard({
 
                     {/* Content Section */}
                     <div className="p-4">
-                        {/* Lab Name */}
+                        {/* Hospital Name */}
                         <h3 className="font-bold text-lg text-gray-900 mb-3">{fullName}</h3>
 
-                        {/* Tests and Pricing */}
+                        {/* Specialties */}
                         <div className="mb-4">
-                            <p className="text-sm font-medium text-gray-700 mb-1">Available Tests:</p>
+                            <p className="text-sm font-medium text-gray-700 mb-1">Specialties:</p>
                             {specialties && specialties.length > 0 ? (
                                 <div className="flex flex-wrap gap-1.5">
-                                    {specialties.slice(0, 3).map((test, index) => (
+                                    {specialties.slice(0, 3).map((specialty, index) => (
                                         <span
-                                            key={`${test.name}-${index}`}
+                                            key={`${specialty}-${index}`}
                                             className="bg-gray-50 px-2 py-1 rounded text-xs border border-gray-200"
                                         >
-                                            {test.name} – ₹
-                                            {test.serviceType === "both"
-                                                ? `${test.homeCharge}-${test.visitCharge}`
-                                                : test.charge}
+                                            {specialty}
                                         </span>
                                     ))}
                                     {specialties.length > 3 && (
@@ -176,12 +160,12 @@ export function LabCard({
                                     )}
                                 </div>
                             ) : (
-                                <p className="text-xs text-gray-500">No tests available</p>
+                                <p className="text-xs text-gray-500">No specialties listed</p>
                             )}
                         </div>
 
                         {/* Location Section */}
-                        <div className="flex items-start gap-2">
+                        <div className="flex items-start gap-2 mb-2">
                             <MapPin size={16} className="text-blue-500 mt-0.5 flex-shrink-0" />
                             <div>
                                 <p className="text-sm text-gray-600 line-clamp-2">{fullLocation}</p>
@@ -190,6 +174,18 @@ export function LabCard({
                                         {distance} from your location
                                     </p>
                                 )}
+                            </div>
+                        </div>
+
+                        {/* Phone Section */}
+                        <div className="flex items-center gap-2 mt-3">
+                            <Phone size={16} className="text-green-500 flex-shrink-0" />
+                            <div
+                                href={`tel:${phone}`}
+                                className="text-sm text-green-600 hover:underline"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {phone}
                             </div>
                         </div>
                     </div>
