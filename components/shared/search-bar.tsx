@@ -1,5 +1,6 @@
 "use client"
-import { Search } from "lucide-react"
+import { Search, MapPin, Calendar } from "lucide-react"
+import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { collection, getDocs } from "firebase/firestore"
@@ -93,33 +94,66 @@ export default function SearchBar({ type, placeholder, className = "", showFilte
   }
 
   return (
-    <form onSubmit={handleSearch} className={`w-full ${className}`}>
-      <div className="relative">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder={placeholder || `Search ${type}...`}
-          className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff8a3c] focus:border-transparent"
-        />
-        <button 
-          type="submit"
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-[#ff8a3c] text-white p-2 rounded-md hover:bg-[#e67a34] transition-colors"
-        >
-          <Search size={20} />
-        </button>
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-surface rounded-lg shadow-lg p-6"
+    >
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary-500" />
+          <motion.input
+            whileFocus={{ scale: 1.02 }}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder={placeholder || `Search ${type}...`}
+            className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+          />
+        </div>
+
+        <div className="relative">
+          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary-500" />
+          <motion.input
+            whileFocus={{ scale: 1.02 }}
+            type="text"
+            value={filters.city}
+            onChange={(e) => setFilters(prev => ({ ...prev, city: e.target.value }))}
+            placeholder="Location"
+            className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+          />
+        </div>
+
+        <div className="relative">
+          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary-500" />
+          <motion.input
+            whileFocus={{ scale: 1.02 }}
+            type="date"
+            value={filters.date}
+            onChange={(e) => setFilters(prev => ({ ...prev, date: e.target.value }))}
+            className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+          />
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-primary-500 text-white p-2 rounded-md hover:bg-primary-600 transition-all shadow-md hover:shadow-lg"
+          >
+            <Search className="w-5 h-5" />
+          </motion.button>
+        </div>
       </div>
 
       {showFilters && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
           {type === "doctors" && (
             <>
-              <select
+              <motion.select
+                whileFocus={{ scale: 1.02 }}
                 value={filters.specialty}
                 onChange={(e) => setFilters(prev => ({ ...prev, specialty: e.target.value }))}
-                className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff8a3c]"
+                className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
               >
                 <option value="">All Specialties</option>
                 {filterOptions.specialties.map((specialty) => (
@@ -127,14 +161,15 @@ export default function SearchBar({ type, placeholder, className = "", showFilte
                     {specialty}
                   </option>
                 ))}
-              </select>
+              </motion.select>
             </>
           )}
 
-          <select
+          <motion.select
+            whileFocus={{ scale: 1.02 }}
             value={filters.city}
             onChange={(e) => setFilters(prev => ({ ...prev, city: e.target.value }))}
-            className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff8a3c]"
+            className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
           >
             <option value="">All Cities</option>
             {filterOptions.cities.map((city) => (
@@ -142,35 +177,37 @@ export default function SearchBar({ type, placeholder, className = "", showFilte
                 {city}
               </option>
             ))}
-          </select>
+          </motion.select>
 
           {type === "doctors" && (
             <>
-              <select
+              <motion.select
+                whileFocus={{ scale: 1.02 }}
                 value={filters.minRating}
                 onChange={(e) => setFilters(prev => ({ ...prev, minRating: e.target.value }))}
-                className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff8a3c]"
+                className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
               >
                 <option value="">Any Rating</option>
                 <option value="4">4+ Stars</option>
                 <option value="3">3+ Stars</option>
                 <option value="2">2+ Stars</option>
-              </select>
+              </motion.select>
 
-              <select
+              <motion.select
+                whileFocus={{ scale: 1.02 }}
                 value={filters.maxFee}
                 onChange={(e) => setFilters(prev => ({ ...prev, maxFee: e.target.value }))}
-                className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff8a3c]"
+                className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
               >
                 <option value="">Any Fee</option>
                 <option value="500">Under ₹500</option>
                 <option value="1000">Under ₹1000</option>
                 <option value="2000">Under ₹2000</option>
-              </select>
+              </motion.select>
             </>
           )}
         </div>
       )}
-    </form>
+    </motion.div>
   )
 } 

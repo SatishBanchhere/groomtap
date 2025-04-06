@@ -4,7 +4,6 @@ import TopBar from "./top-bar";
 export default function Navigation() {
   return (
     <>
-
       <nav className="hidden md:flex items-center space-x-6">
         <div className="h-8">
           <TopBar />
@@ -21,9 +20,8 @@ export default function Navigation() {
 
 function NavLink({ href, label }: { href: string; label: string }) {
   return (
-    <Link href={href} className="text-gray-700 hover:text-[#ff8a3c] transition-colors">
+    <Link href={href} className="text-[#2D796D] hover:text-[#1B4D44] transition-colors">
       {label}
     </Link>
   )
 }
-

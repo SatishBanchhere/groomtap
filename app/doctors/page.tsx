@@ -1,79 +1,94 @@
-// "use client"
-import PageHeader from "@/components/shared/page-header"
-import DoctorSearch from "@/components/doctors/doctor-search"
+"use client"
+import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
+import SearchBar from "@/components/shared/search-bar"
 import DoctorResults from "@/components/doctors/doctor-results"
-import Pagination from "@/components/shared/pagination"
-import AnimatedLayout from "@/components/shared/animated-layout"
-import AnimatedSection from "@/components/shared/animated-section"
-import { getDocs, collection } from "firebase/firestore"
-import { db } from "@/lib/firebase"
+// import HospitalResults from "@/components/"
+import LabResults from "@/components/labs/lab-results"
+import EmergencyResults from "@/components/emergency/emergency-results"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
-type Availability = {
-  Monday: boolean;
-  Tuesday: boolean;
-  Wednesday: boolean;
-  Thursday: boolean;
-  Friday: boolean;
-  Saturday: boolean;
-  Sunday: boolean;
-}
+type SearchCategory = 'all' | 'doctors' | 'hospitals' | 'labs' | 'emergency'
 
-type Doctor = {
-  id: string;
-  about: string;
-  availability: Availability;
-  consultationFees: string;
-  createdAt: string;
-  createdBy: string;
-  email: string;
-  experienceInYears: string;
-  fullName: string;
-  imageUrl: string;
-  location: {
-    address: string;
-    city: string;
-    district: string;
-    state: string;
-  };
-  medicalLicenseNumber: string;
-  phone: string;
-  revisitDays: number;
-  revisitFees: string;
-  serviceCharge: string;
-  specialty: string;
-  status: string;
-}
+export default function HealthcareSearchPage() {
+  const searchParams = useSearchParams()
+  const [activeTab, setActiveTab] = useState<SearchCategory>('all')
+  const searchTerm = searchParams.get('q') || ''
 
-async function getDoctors(): Promise<Doctor[]> {
-  const doctorsRef = collection(db, "doctors")
-  const snapshot = await getDocs(doctorsRef)
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  })) as Doctor[]
-}
-
-export default async function DoctorsPage() {
-  const doctors = await getDoctors()
+  useEffect(() => {
+    const category = searchParams.get('category') as SearchCategory
+    if (category && ['all', 'doctors', 'hospitals', 'labs', 'emergency'].includes(category)) {
+      setActiveTab(category)
+    }
+  }, [searchParams])
 
   return (
-    <AnimatedLayout>
-      <PageHeader title="Search Doctors" breadcrumb={["Home", "Search Doctors"]} />
-      <div className="bg-background py-6">
-        <div className="container mx-auto px-4">
-          <AnimatedSection animation="slideUp" delay={0.2}>
-            <DoctorSearch />
-          </AnimatedSection>
-          
-          <AnimatedSection animation="fadeIn" delay={0.4}>
-            <DoctorResults doctors={doctors} />
-          </AnimatedSection>
-          
-          <AnimatedSection animation="slideUp" delay={0.6}>
-            <Pagination />
-          </AnimatedSection>
+      <div>
+        <div className="flex items-center gap-4 mb-8">
+          <Link href="/" className="flex items-center text-gray-600 hover:text-gray-900">
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Back to Home
+          </Link>
         </div>
+
+        <div className="mb-8">
+          <SearchBar
+              type="healthcare"
+              showFilters
+              placeholder={searchTerm || "Search doctors, hospitals, labs..."}
+              defaultValue={searchTerm}
+          />
+        </div>
+
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as SearchCategory)}>
+          <TabsList className="grid w-full grid-cols-5 mb-6">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="doctors">Doctors</TabsTrigger>
+            <TabsTrigger value="hospitals">Hospitals</TabsTrigger>
+            <TabsTrigger value="labs">Labs</TabsTrigger>
+            <TabsTrigger value="emergency">Emergency</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all">
+            <div className="space-y-8">
+              <Section title="Doctors">
+                <DoctorResults />
+              </Section>
+              {/*<Section title="Hospitals">*/}
+              {/*  <HospitalResults />*/}
+              {/*</Section>*/}
+              <Section title="Diagnostic Labs">
+                <LabResults />
+              </Section>
+              <Section title="Emergency Services">
+                <EmergencyResults />
+              </Section>
+            </div>
+          </TabsContent>
+          <TabsContent value="doctors">
+            <DoctorResults />
+          </TabsContent>
+          {/*<TabsContent value="hospitals">*/}
+          {/*  <HospitalResults />*/}
+          {/*</TabsContent>*/}
+          <TabsContent value="labs">
+            <LabResults />
+          </TabsContent>
+          <TabsContent value="emergency">
+            <EmergencyResults />
+          </TabsContent>
+        </Tabs>
       </div>
-    </AnimatedLayout>
+  )
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+      <section>
+        <h2 className="text-xl font-bold mb-4">{title}</h2>
+        {children}
+      </section>
   )
 }

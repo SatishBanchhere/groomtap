@@ -3,15 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --primary: #ff8a3c;
-  --secondary: #1e293b;
-  --background: #f8f5ef;
-  --foreground: #1e293b;
+  --primary: #3B7B7B;
+  --secondary: #0091A5;
+  --background: #F8F5F5;
+  --foreground: #1E293B;
 }
 
 body {
   color: var(--foreground);
-  background-color: white;
+  background-color: var(--background);
   font-family: "Inter", sans-serif;
 }
 
@@ -21,16 +21,15 @@ body {
 }
 
 .btn-primary {
-  @apply bg-[#ff8a3c] text-white px-4 py-2 rounded-full hover:bg-[#e67a2e] transition-all flex items-center justify-center gap-2;
+  @apply bg-primary-500 text-white px-4 py-2 rounded-full hover:bg-primary-600 transition-all flex items-center justify-center gap-2;
 }
 
-
 .btn-outline {
-  @apply border border-[#ff8a3c] text-[#ff8a3c] px-4 py-2 rounded-full hover:bg-[#ff8a3c] hover:text-white transition-all flex items-center justify-center;
+  @apply border border-primary-500 text-primary-500 px-4 py-2 rounded-full hover:bg-primary-500 hover:text-white transition-all flex items-center justify-center;
 }
 
 .page-header {
-  @apply bg-[#1e293b] text-white py-12 relative overflow-hidden;
+  @apply bg-primary-500 text-white py-12 relative overflow-hidden;
 }
 
 .page-header::before {
@@ -45,43 +44,43 @@ body {
 }
 
 .specialist-card {
-  @apply bg-white rounded-lg p-6 flex flex-col items-center justify-center transition-all hover:shadow-lg;
+  @apply bg-surface rounded-lg p-6 flex flex-col items-center justify-center transition-all hover:shadow-lg hover:-translate-y-1;
 }
 
 .doctor-card {
-  @apply bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all;
+  @apply bg-surface rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1;
 }
 
 .input-field {
-  @apply w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ff8a3c] focus:border-transparent;
+  @apply w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
 }
 
 .section-title {
-  @apply text-2xl md:text-3xl font-bold mb-6;
+  @apply text-2xl md:text-3xl font-bold mb-6 text-text-primary;
 }
 
 .section-subtitle {
-  @apply text-sm text-[#ff8a3c] uppercase font-medium mb-2;
+  @apply text-sm text-primary-500 uppercase font-medium mb-2;
 }
 
 .specialty-icon {
-  @apply w-16 h-16 flex items-center justify-center rounded-full bg-[#fff2e7] text-[#ff8a3c];
+  @apply w-16 h-16 flex items-center justify-center rounded-full bg-primary-50 text-primary-500;
 }
 
 .process-step-icon {
-  @apply w-20 h-20 flex items-center justify-center rounded-full bg-white shadow-sm text-[#ff8a3c];
+  @apply w-20 h-20 flex items-center justify-center rounded-full bg-surface shadow-sm text-primary-500;
 }
 
 .process-arrow {
-  @apply hidden md:block absolute ml-40 text-[#ff8a3c];
+  @apply hidden md:block absolute ml-40 text-primary-500;
 }
 
 .contact-card {
-  @apply bg-white rounded-lg p-6 flex flex-col items-center text-center relative overflow-hidden;
+  @apply bg-surface rounded-lg p-6 flex flex-col items-center text-center relative overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1;
 }
 
 .contact-card-icon {
-  @apply w-16 h-16 flex items-center justify-center rounded-full bg-[#fff2e7] text-[#ff8a3c] mb-4;
+  @apply w-16 h-16 flex items-center justify-center rounded-full bg-primary-50 text-primary-500 mb-4;
 }
 
 .contact-card::after {
@@ -91,57 +90,57 @@ body {
   left: 0;
   right: 0;
   height: 40px;
-  background: linear-gradient(to right, #f0f9ff 0%, #e1f5fe 50%, #f0f9ff 100%);
+  background: linear-gradient(to right, #E6EFEF 0%, #CCDFE0 50%, #E6EFEF 100%);
   opacity: 0.3;
   border-radius: 0 0 8px 8px;
 }
 
 .faq-item {
-  @apply border border-gray-200 rounded-lg overflow-hidden;
+  @apply border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all;
 }
 
 .faq-question {
-  @apply w-full flex items-center justify-between p-4 text-left font-medium;
+  @apply w-full flex items-center justify-between p-4 text-left font-medium hover:bg-primary-50 transition-colors;
 }
 
 .faq-answer {
-  @apply p-4 bg-gray-50 border-t border-gray-200 text-sm text-gray-600;
+  @apply p-4 bg-gray-50 border-t border-gray-200 text-sm text-text-secondary;
 }
 
 .time-slot {
-  @apply text-xs p-2 border border-gray-200 rounded hover:border-[#ff8a3c] hover:text-[#ff8a3c] transition-all;
+  @apply text-xs p-2 border border-gray-200 rounded hover:border-primary-500 hover:text-primary-500 transition-all hover:-translate-y-0.5;
 }
 
 .tab-button {
-  @apply px-4 py-3 transition-all;
+  @apply px-4 py-3 transition-all hover:bg-primary-600;
 }
 
 .tab-button.active {
-  @apply bg-[#ff8a3c];
+  @apply bg-primary-500;
 }
 
 .tab-button:not(.active) {
-  @apply hover:bg-gray-700;
+  @apply hover:bg-primary-400;
 }
 
 .breadcrumb-item {
-  @apply hover:text-[#ff8a3c] transition-colors;
+  @apply hover:text-primary-300 transition-colors;
 }
 
 .pagination-item {
-  @apply w-8 h-8 flex items-center justify-center rounded-full transition-all;
+  @apply w-8 h-8 flex items-center justify-center rounded-full transition-all hover:-translate-y-0.5;
 }
 
 .pagination-item.active {
-  @apply bg-[#ff8a3c] text-white;
+  @apply bg-primary-500 text-white;
 }
 
 .pagination-item:not(.active) {
-  @apply bg-white text-gray-700 hover:bg-gray-100;
+  @apply bg-surface text-text-secondary hover:bg-primary-50;
 }
 
 .footer-link {
-  @apply text-sm text-gray-400 hover:text-[#ff8a3c] transition-colors;
+  @apply text-sm text-text-muted hover:text-primary-500 transition-colors;
 }
 
 .footer-contact-item {
@@ -149,19 +148,19 @@ body {
 }
 
 .footer-contact-icon {
-  @apply text-[#ff8a3c] mt-1;
+  @apply text-primary-500 mt-1;
 }
 
 .footer-heading {
-  @apply text-lg font-bold mb-4;
+  @apply text-lg font-bold mb-4 text-text-primary;
 }
 
 .emergency-call {
-  @apply border border-gray-700 rounded-lg p-6;
+  @apply border border-primary-200 rounded-lg p-6 hover:shadow-lg transition-all hover:-translate-y-1;
 }
 
 .newsletter {
-  @apply border border-gray-700 rounded-lg p-6;
+  @apply border border-primary-200 rounded-lg p-6 hover:shadow-lg transition-all hover:-translate-y-1;
 }
 
 .newsletter-input {
@@ -170,5 +169,46 @@ body {
 
 .newsletter-button {
   @apply bg-[#ff8a3c] text-white px-4 py-2 rounded-r-md hover:bg-[#e67a2e] transition-all flex items-center space-x-1;
+}
+
+/* Animation Classes */
+.hover-float {
+  @apply hover:animate-float;
+}
+
+.hover-bounce {
+  @apply hover:animate-bounce;
+}
+
+.hover-pulse {
+  @apply hover:animate-pulse;
+}
+
+.hover-wave {
+  @apply hover:animate-wave;
+}
+
+.animate-on-scroll {
+  @apply opacity-0 translate-y-4 transition-all duration-700;
+}
+
+.animate-on-scroll.in-view {
+  @apply opacity-100 translate-y-0;
+}
+
+.scale-on-hover {
+  @apply transition-transform duration-300 hover:scale-105;
+}
+
+.rotate-on-hover {
+  @apply transition-transform duration-300 hover:rotate-6;
+}
+
+.slide-up-on-hover {
+  @apply transition-all duration-300 hover:-translate-y-2;
+}
+
+.glow-on-hover {
+  @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary-500/20;
 }
 

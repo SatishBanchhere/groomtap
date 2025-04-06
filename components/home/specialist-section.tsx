@@ -55,10 +55,11 @@ export default function SpecialistSection() {
             ))
           ) : specialties.length > 0 ? (
             specialties.map((specialty) => (
-              <SpecialistCard 
-                key={specialty.id} 
-                name={specialty.name} 
-                imageUrl={specialty.imageUrl} 
+              <SpecialistCard
+                key={specialty.id}
+                id={specialty.id}
+                name={specialty.name}
+                imageUrl={specialty.imageUrl}
               />
             ))
           ) : (
@@ -86,14 +87,14 @@ export default function SpecialistSection() {
   )
 }
 
-function SpecialistCard({ name, imageUrl }: { name: string; imageUrl?: string }) {
+function SpecialistCard({ name, imageUrl, id }: { name: string; imageUrl?: string, id?: string }) {
   return (
     <>
-      <Link href={`/specialist/${name}`} className="specialist-card">
+      <Link href={`/specialist/${id}`} className="specialist-card">
         {imageUrl ? (
-          <img 
-            src={imageUrl} 
-            alt={name} 
+          <img
+            src={imageUrl}
+            alt={name}
             className="w-16 h-16 mx-auto object-cover rounded-full"
           />
         ) : (

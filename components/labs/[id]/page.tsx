@@ -10,6 +10,7 @@ import { Share2, Heart } from 'lucide-react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import PageHeader from '@/components/shared/page-header';
+import {Lab} from '@/types/lab'
 
 type TimeSlot = {
   start: string;
@@ -30,26 +31,6 @@ type Schedule = {
   endTime: string;
   interval: number;
   timeSlots: TimeSlot[];
-};
-
-type Doctor = {
-  id: string;
-  fullName: string;
-  specialty: string;
-  consultationFee: string;
-  imageUrl: string;
-  qualifications: string;
-  about: string;
-  location: {
-    address: string;
-    city: string;
-    district: string;
-    state: string;
-  };
-  availability: {
-    [key: string]: boolean;
-  };
-  phone: string;
 };
 
 type BookingFormData = {
@@ -82,7 +63,7 @@ function formatDateForFirebase(date: Date) {
 export default function DoctorDetailPage({ params }: { params: { id: string } }) {
   const { user, signInWithGoogle } = useAuth();
   const router = useRouter();
-  const [doctor, setDoctor] = useState<Doctor | null>(null);
+  const [lab, setLab] = useState<Lab | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [loading, setLoading] = useState(true);
@@ -109,11 +90,10 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
 
   useEffect(() => {
     const fetchDoctor = async () => {
-      const docRef = doc(db, 'doctors', id);
+      const docRef = doc(db, 'lab_form', id);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        setDoctor({ id: docSnap.id, ...docSnap.data() } as Doctor);
-        console.log(docSnap.data())
+        setLab({ id: docSnap.id, ...docSnap.data() } as Lab);
       }
       setLoading(false);
     };
@@ -122,15 +102,13 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
 
   useEffect(() => {
     const fetchSchedule = async () => {
-      if (!selectedDate || !doctor?.availability) return;
+      if (!selectedDate) return;
 
       const dayName = daysOfWeek[selectedDate.getDay()];
-      if (!doctor.availability[dayName]) {
         setSchedule(null);
-        return;
-      }
 
-      const schedulesRef = collection(db, `doctors/${id}/schedules`);
+
+      const schedulesRef = collection(db, `labs/${id}/schedules`);
       const q = query(
         schedulesRef,
         where('doctorId', '==', id),
@@ -150,14 +128,14 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
     if (selectedDate) {
       fetchSchedule();
     }
-  }, [selectedDate, id, doctor?.availability]);
+  }, [selectedDate, id);
 
   const handleBooking = async (timeSlot: TimeSlot) => {
     if (!user) {
       await signInWithGoogle();
       return;
     }
-    if (!selectedDate || !doctor) return;
+    if (!selectedDate || !lab) return;
     console.log(timeSlot);
     setSelectedTimeSlot(timeSlot);
     setShowConfirmation(true);
@@ -165,13 +143,13 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
   };
 
   const confirmBooking = async () => {
-    if (!selectedTimeSlot || !selectedDate || !doctor || !user) return;
+    if (!selectedTimeSlot || !selectedDate || !lab || !user) return;
     if (!bookingData.phoneNumber || !bookingData.patientName) return;
 
     try {
       const appointment = {
         doctorId: id,
-        doctorName: doctor.fullName,
+        doctorName: lab.fullName,
         patientId: user.uid,
         patientName: bookingData.patientName,
         phoneNumber: bookingData.phoneNumber,
@@ -180,8 +158,8 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
         timeSlot: selectedTimeSlot.start,
         createdAt: new Date().toISOString(),
         status: 'scheduled',
-        location: doctor.location,
-        consultationFees: doctor.consultationFee,
+        location: lab.location,
+        consultationFees: lab.consultationFees,
         paymentMethod: bookingData.paymentMethod
       };
 
@@ -382,7 +360,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
 
               <div className="mt-6">
                 <p className="text-sm text-gray-500 mb-2">
-                  Consultation Fee: ₹{doctor.consultationFee}
+                  Consultation Fee: ₹{doctor.consultationFees}
                 </p>
                 {showConfirmation ? (
                   <div className="space-y-3">

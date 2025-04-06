@@ -48,7 +48,7 @@ export default function HeroSection() {
         delay={0.5}
       >
         <Image
-          src="/doctor-patient.jpg"
+          src="/images/doctor-patient.jpg"
           alt="Doctor consulting patient"
           fill
           className="object-cover"

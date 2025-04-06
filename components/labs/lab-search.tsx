@@ -1,17 +1,18 @@
 "use client"
+
 import { Search } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 
-type DoctorSearchProps = {
-    onSearch: (term: string) => void;
-}
-
-export default function DoctorSearch({ onSearch }: DoctorSearchProps) {
-    const [searchTerm, setSearchTerm] = useState('')
+export default function LabSearch({ initialSearch = "" }: { initialSearch?: string }) {
+    const [searchTerm, setSearchTerm] = useState(initialSearch)
+    const router = useRouter()
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
-        onSearch(searchTerm)
+        const params = new URLSearchParams()
+        if (searchTerm) params.set("search", searchTerm)
+        router.push(`/labs?${params.toString()}`)
     }
 
     return (
@@ -19,10 +20,10 @@ export default function DoctorSearch({ onSearch }: DoctorSearchProps) {
             <form onSubmit={handleSearch} className="flex">
                 <input
                     type="text"
-                    placeholder="Ex: Doctor Name, Specialty, City"
-                    className="px-4 py-2 rounded-l-full w-full focus:outline-none border-y border-l border-gray-300"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Ex: Lab Name, Test, Location, etc."
+                    className="px-4 py-2 rounded-l-full w-full focus:outline-none border-y border-l border-gray-300"
                 />
                 <button
                     type="submit"
