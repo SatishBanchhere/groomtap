@@ -1,16 +1,44 @@
 "use client"
 
-import { useState } from "react"
+import {useEffect, useState} from "react"
 import { Phone, Mail } from "lucide-react"
 import { motion } from "framer-motion"
-import { addDoc, collection } from "firebase/firestore"
+import {addDoc, collection, getDocs} from "firebase/firestore"
 import { db } from "@/lib/firebase"
+type data = {
+  phoneNumber: string;
+}
 
+const initialData = {
+  phoneNumber: ""
+}
 export default function EmergencyNewsletter() {
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
+  const [impData, setImpData] = useState<data>(initialData);
+
+  useEffect(() => {
+    fetchData();
+  }, [])
+
+  async function fetchData() {
+    const webContentRef = collection(db, "webContent");
+    const webContentSnapshot = await getDocs(webContentRef);
+    const tempData: data = {
+      phoneNumber: "",
+
+    }
+    for(const doc of webContentSnapshot.docs) {
+      if(doc.id === "phoneNumber"){
+        console.log(doc.data())
+        tempData.phoneNumber = doc.data().content
+      }
+    }
+    setImpData(tempData);
+    console.log(impData)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,11 +89,12 @@ export default function EmergencyNewsletter() {
               <div>
                 <h3 className="text-lg font-semibold text-text-primary">Emergency Call</h3>
                 <motion.a
-                  href="tel:+919470075205"
+                  href={`${impData.phoneNumber.replace(/<\/?p>/g, "")}`}
                   whileHover={{ scale: 1.05 }}
                   className="text-xl font-bold text-primary-500 hover:text-primary-600 transition-colors"
+                  dangerouslySetInnerHTML={{__html:impData.phoneNumber}}
                 >
-                  +91 9470075205
+
                 </motion.a>
               </div>
             </div>
@@ -113,7 +142,7 @@ export default function EmergencyNewsletter() {
                   )}
                 </motion.button>
               </div>
-              
+
               {error && (
                 <motion.div
                   initial={{ opacity: 0 }}

@@ -20,7 +20,7 @@ type Doctor = {
   specialty: string
   experience: string
   rating: number
-  consultationFee: number
+  consultationFees: number
   location: {
     address: string
     city: string
@@ -163,7 +163,7 @@ export default function SpecialtyDetailPage({ params }: { params: { id: string }
                       <span>{doctor.location?.city}</span>
                     </div>
                     <div className="mt-2 text-[#ff8a3c] font-medium">
-                      ₹{doctor.consultationFee} Consultation
+                      ₹{doctor.consultationFees} Consultation
                     </div>
                   </div>
                 </div>

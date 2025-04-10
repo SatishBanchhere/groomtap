@@ -1,4 +1,39 @@
+import {useEffect, useState} from "react";
+import {collection, getDocs} from "firebase/firestore";
+import {db} from "@/lib/firebase";
+
+
+type data = {
+    aboutUs: string
+}
+
+const initialData = {
+    aboutUs: ""
+}
+
 export default function FooterAbout() {
+
+    const [impData, setImpData] = useState<data>(initialData);
+
+    useEffect(() => {
+        fetchData();
+    }, [])
+
+    async function fetchData() {
+        const webContentRef = collection(db, "webContent");
+        const webContentSnapshot = await getDocs(webContentRef);
+        const tempData: data = {
+            aboutUs: "",
+        }
+        for(const doc of webContentSnapshot.docs) {
+            if(doc.id === "aboutUs"){
+                tempData.aboutUs = doc.data().content
+            }
+        }
+        setImpData(tempData);
+        console.log(impData)
+    }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-2">
@@ -12,6 +47,7 @@ export default function FooterAbout() {
       <p className="text-sm text-gray-400">
         Established on July 10th, 2024, DocZappoint Pvt. Ltd. is transforming healthcare with a state-of-the-art
         telemedicine platform, seamlessly connecting patients with licensed doctors for convenient online appointments.
+          {impData.aboutUs}
       </p>
     </div>
   )

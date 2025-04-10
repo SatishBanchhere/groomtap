@@ -36,7 +36,7 @@ type Doctor = {
   id: string;
   fullName: string;
   specialty: string;
-  consultationFee: string;
+  consultationFees: string;
   imageUrl: string;
   qualifications: string;
   about: string;
@@ -212,7 +212,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
         createdAt: new Date().toISOString(),
         status: 'scheduled',
         location: doctor.location,
-        consultationFees: doctor.consultationFee,
+        consultationFees: doctor.consultationFees,
         paymentMethod: bookingData.paymentMethod
       };
 
@@ -547,7 +547,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
 
                 <div className="mt-6">
                   <p className="text-sm text-gray-500 mb-2">
-                    Consultation Fee: ₹{doctor.consultationFee}
+                    Consultation Fee: ₹{doctor.consultationFees}
                   </p>
                   {showConfirmation ? (
                       <div className="space-y-3">
@@ -627,7 +627,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                         <strong>Time:</strong> {selectedTimeSlot?.start}<br />
                         <strong>Patient:</strong> {bookingData.patientName}<br />
                         <strong>Phone:</strong> {bookingData.phoneNumber}<br />
-                        <strong>Fee:</strong> ₹{doctor?.consultationFee}
+                        <strong>Fee:</strong> ₹{doctor?.consultationFees}
                       </p>
                     </div>
 
@@ -649,7 +649,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                                 createdAt: new Date().toISOString(),
                                 status: 'scheduled',
                                 location: doctor?.location,
-                                consultationFees: doctor?.consultationFee,
+                                consultationFees: doctor?.consultationFees,
                                 paymentMethod: bookingData.paymentMethod
                               };
 

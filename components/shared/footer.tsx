@@ -3,8 +3,62 @@
 import Image from "next/image"
 import Link from "next/link"
 import { Phone, Mail, MapPin } from "lucide-react"
+import {useEffect, useState} from "react";
+import {collection, getDocs} from "firebase/firestore";
+import {db} from "@/lib/firebase";
+
+type data = {
+  aboutUs: string;
+  address: string;
+  email: string;
+  phoneNumber: string;
+}
+
+const initialData = {
+  aboutUs: "",
+  address: "",
+  email: "",
+  phoneNumber: ""
+}
 
 export default function Footer() {
+
+  const [impData, setImpData] = useState<data>(initialData);
+
+  useEffect(() => {
+    fetchData();
+  }, [])
+
+  async function fetchData() {
+    const webContentRef = collection(db, "webContent");
+    const webContentSnapshot = await getDocs(webContentRef);
+    const tempData: data = {
+      aboutUs: "",
+      address: "",
+      email: "",
+      phoneNumber: "",
+
+    }
+    for(const doc of webContentSnapshot.docs) {
+      if(doc.id === "aboutUs"){
+        tempData.aboutUs = doc.data().content
+      }
+      if(doc.id === "address"){
+        tempData.address = doc.data().content
+      }
+      if(doc.id === "email"){
+        tempData.email = doc.data().content
+      }
+      if(doc.id === "phoneNumber"){
+        console.log(doc.data())
+        tempData.phoneNumber = doc.data().content
+      }
+    }
+    setImpData(tempData);
+    console.log(impData)
+  }
+
+
   return (
       <footer className="bg-[#1B2232] text-white pt-16 pb-8">
         <div className="container mx-auto px-4">
@@ -14,15 +68,9 @@ export default function Footer() {
               <img
                 src={"/logo.png"}
               />
-              <div className="text-gray-400 text-sm leading-relaxed">
-                <p>
-                  Established on July 10th, 2024,<br />
-                  DocZappoint Pvt. Ltd. is transforming<br />
-                  healthcare with a state-of-the-art<br />
-                  telemedicine platform, seamlessly<br />
-                  connecting patients with licensed doctors<br />
-                  for convenient online appointments.
-                </p>
+              <div
+                  dangerouslySetInnerHTML={{ __html: impData.aboutUs }}
+                  className="text-gray-400 text-sm leading-relaxed">
               </div>
             </div>
 
@@ -86,24 +134,30 @@ export default function Footer() {
               <ul className="space-y-4">
                 <li className="flex items-center gap-3 text-gray-400 text-sm">
                   <MapPin className="text-primary-500" size={20} />
-                  <span>Ara,bihar ,802301</span>
+                  <span
+                    dangerouslySetInnerHTML={{__html: impData.address}}
+                  ></span>
                 </li>
                 <li>
                   <a
-                      href="tel:+919470075205"
+                      href={`tel:${impData.phoneNumber.replace(/<\/?p>/g, "")}`}
                       className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors text-sm"
                   >
                     <Phone className="text-primary-500" size={20} />
-                    <span>+91 9470075205</span>
+                    <span
+                        dangerouslySetInnerHTML={{__html: impData.phoneNumber}}
+                    ></span>
                   </a>
                 </li>
                 <li>
                   <a
-                      href="mailto:docsappoint.in@gmail.com"
+                      href={`mailto:${impData.email.replace(/<\/?p>/g, "")}`}
                       className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors text-sm"
                   >
-                    <Mail className="text-primary-500" size={20} />
-                    <span>docsappoint.in@gmail.com</span>
+                    <Mail className="text-primary-500" size={20}/>
+                    <span
+                        dangerouslySetInnerHTML={{__html: impData.email}}
+                    ></span>
                   </a>
                 </li>
               </ul>

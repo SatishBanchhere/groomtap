@@ -1,19 +1,59 @@
+"use client"
 import Link from "next/link"
 import { Download, AppleIcon, SmartphoneNfc } from "lucide-react"
+import {useEffect, useState} from "react";
+import {collection, getDocs} from "firebase/firestore";
+import {db} from "@/lib/firebase";
+type data = {
+  playstoreLink: string,
+  appstoreLink: string,
+}
+
+const initialData = {
+  playstoreLink: "",
+  appstoreLink: "",
+}
 
 export default function AppDownload() {
+
+  const [impData, setImpData] = useState<data>(initialData);
+
+  useEffect(() => {
+    fetchData();
+  }, [])
+
+  async function fetchData() {
+    const webContentRef = collection(db, "webContent");
+    const webContentSnapshot = await getDocs(webContentRef);
+    const tempData: data = {
+      playstoreLink: "",
+      appstoreLink: "",
+    }
+    for(const doc of webContentSnapshot.docs) {
+      if(doc.id === "playstoreLink"){
+        tempData.playstoreLink = doc.data().content
+      }
+      if(doc.id === "appstoreLink"){
+        tempData.appstoreLink = doc.data().content
+      }
+    }
+    setImpData(tempData);
+    console.log(impData)
+  }
+
+
   return (
     <section className="bg-[#1e293b] text-white py-12">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           <div className="flex justify-center w-100">
-            <img 
-              src="https://i.ibb.co/BKj4BnsK/663353.png" 
-              alt="Mobile app" 
-              className="w-[320px] md:w-[480px]" 
+            <img
+              src="https://i.ibb.co/BKj4BnsK/663353.png"
+              alt="Mobile app"
+              className="w-[320px] md:w-[480px]"
             />
           </div>
-          <AppContent />
+          <AppContent impData={impData} />
         </div>
       </div>
     </section>
@@ -41,7 +81,7 @@ function AppImage() {
   )
 }
 
-function AppContent() {
+function AppContent({impData}) {
   return (
     <div className="space-y-6">
       <span className="text-[#ff8a3c] font-medium">DOWNLOAD APPS</span>
@@ -49,8 +89,8 @@ function AppContent() {
       <p className="text-gray-400">For a smoother Experience and instant Access, Download Our Mobile App Today!</p>
       <div className="flex flex-col sm:flex-row gap-4">
         <Link
-          href="#"
-          className="inline-flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition-all"
+            href={(impData.appstoreLink.match(/href="(.*?)"/)?.[1] || "#")}
+            className="inline-flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition-all"
         >
           <AppleIcon size={24} />
           <div>
@@ -59,8 +99,8 @@ function AppContent() {
           </div>
         </Link>
         <Link
-          href="#"
-          className="inline-flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition-all"
+            href={(impData.playstoreLink.match(/href="(.*?)"/)?.[1] || "#")}
+            className="inline-flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition-all"
         >
           <SmartphoneNfc size={24} />
           <div>
