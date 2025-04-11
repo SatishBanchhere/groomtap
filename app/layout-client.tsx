@@ -17,7 +17,7 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
             <TopBar />
             <Navbar />
             <main className="min-h-screen">{children}</main>
-            {pathName !== "/tool" && <Footer />}
+            {pathName !== "/tool" && pathName !== "/admin" && <Footer />}
             <GoToTop />
             <Toaster position="top-center" richColors />
         </AuthProvider>
