@@ -51,7 +51,7 @@ export default function Navbar() {
               <div className="hidden md:flex items-center space-x-8">
                 <nav className="flex items-center space-x-8">
                   <NavLink href="/" label="Home" />
-                  <NavLink href="/aboutus" label="About⠀Us" />
+                  <NavLink href="/aboutus" label="About Us" />
                   <NavLink href="/specialist" label="Specialist" />
                   <NavLink href="/doctors" label="Doctors" />
                   <NavLink href="/hospitals" label="Hospitals" />
@@ -60,8 +60,8 @@ export default function Navbar() {
 
                 {/* Combined line for Emergency, Contact, and Auth */}
                 <div className="flex items-center space-x-8">
-                  <NavLink href="/emergency" label="Emergency⠀Services" />
-                  <NavLink href="/contactus" label="Contact⠀Us" />
+                  <NavLink href="/emergency" label="Emergency Services" />
+                  <NavLink href="/contactus" label="Contact Us" />
 
                   {user ? (
                       <motion.div
@@ -91,26 +91,43 @@ export default function Navbar() {
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={signInWithGoogle}
-                          className="flex items-center space-x-2 bg-surface border-2 border-primary-200 rounded-full text-sm font-medium px-4 my-4text-text-primary hover:border-primary-500 hover:text-primary-500 transition-all shadow-sm hover:shadow"
+                          className="flex items-center space-x-2 bg-surface border-2 border-primary-200 rounded-full px-4 py-2 text-sm font-medium text-text-primary hover:border-primary-500 hover:text-primary-500 transition-all shadow-sm hover:shadow"
                       >
                         <img
                             src="https://www.google.com/favicon.ico"
                             alt="Google"
                             className="w-4 h-4"
                         />
-                        <span>Sign⠀In</span>
+                        <span>Sign In</span>
                       </motion.button>
                   )}
                 </div>
               </div>
 
-              {/* Mobile Menu Button */}
-              <button
-                  onClick={toggleMobileMenu}
-                  className="md:hidden text-text-primary p-2 rounded-md focus:outline-none"
-              >
-                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
+              {/* Mobile View - Sign In Button and Menu Toggle */}
+              <div className="flex items-center space-x-4 md:hidden">
+                {!user && (
+                    <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={signInWithGoogle}
+                        className="flex items-center space-x-1 bg-surface border-2 border-primary-200 rounded-full px-3 py-1 text-sm font-medium text-text-primary hover:border-primary-500 hover:text-primary-500 transition-all shadow-sm hover:shadow"
+                    >
+                      <img
+                          src="https://www.google.com/favicon.ico"
+                          alt="Google"
+                          className="w-3 h-3"
+                      />
+                      <span>Sign In</span>
+                    </motion.button>
+                )}
+                <button
+                    onClick={toggleMobileMenu}
+                    className="text-text-primary p-2 rounded-md focus:outline-none"
+                >
+                  {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+              </div>
             </div>
           </div>
         </motion.nav>
@@ -143,8 +160,8 @@ export default function Navbar() {
               <NavLink href="/contactus" label="Contact Us" />
             </nav>
 
-            <div className="mt-auto pb-8">
-              {user ? (
+            {user && (
+                <div className="mt-auto pb-8">
                   <div className="flex flex-col items-center space-y-4">
                     <div className="flex items-center space-x-3">
                       <img
@@ -164,25 +181,8 @@ export default function Navbar() {
                       Logout
                     </button>
                   </div>
-              ) : (
-                  <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        signInWithGoogle();
-                        toggleMobileMenu();
-                      }}
-                      className="w-full flex items-center justify-center space-x-2 bg-surface border-2 border-primary-200 rounded-full px-4 py-3 text-sm font-medium text-text-primary hover:border-primary-500 hover:text-primary-500 transition-all shadow-sm hover:shadow"
-                  >
-                    <img
-                        src="https://www.google.com/favicon.ico"
-                        alt="Google"
-                        className="w-4 h-4"
-                    />
-                    <span>Sign in with Google</span>
-                  </motion.button>
-              )}
-            </div>
+                </div>
+            )}
           </div>
         </motion.div>
 
