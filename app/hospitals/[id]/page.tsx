@@ -172,7 +172,7 @@ export default function HospitalDetailPage({ params }: { params: { id: string } 
           <div className="relative h-64 w-full">
             <Image
                 src={hospital.imageUrl || "/placeholder-hospital.jpg"}
-                alt={hospital.fullName}
+                alt={hospital.fullName || "Hospital Name"}
                 fill
                 className="object-cover"
             />

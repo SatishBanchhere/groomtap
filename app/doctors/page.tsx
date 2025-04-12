@@ -176,6 +176,7 @@ export default function DoctorSearchPage() {
     }
 
     return doctorsWithCoordinates
+
   }
 
   const fetchDoctors = useCallback(async () => {
@@ -226,14 +227,27 @@ export default function DoctorSearchPage() {
           doctor.distanceValue !== undefined && doctor.distanceValue <= 10000
       )
 
-      const sortedDoctors = nearbyDoctors.sort((a, b) => {
-        if (a.distanceValue !== undefined && b.distanceValue !== undefined) {
-          return a.distanceValue - b.distanceValue
-        }
-        return 0
-      })
+      if(nearbyDoctors.length > 0) {
+        const sortedDoctors = nearbyDoctors.sort((a, b) => {
+          if (a.distanceValue !== undefined && b.distanceValue !== undefined) {
+            return a.distanceValue - b.distanceValue
+          }
+          return 0
+        })
 
-      setDoctors(sortedDoctors)
+        setDoctors(sortedDoctors)
+      }
+      else{
+        const sortedDoctors = processedDoctors.sort((a, b) => {
+          if (a.distanceValue !== undefined && b.distanceValue !== undefined) {
+            return a.distanceValue - b.distanceValue
+          }
+          return 0
+        })
+        console.log(sortedDoctors)
+        setDoctors(sortedDoctors)
+      }
+
     } catch (err) {
       console.error("Error fetching doctors:", err)
       setError("Failed to load doctors. Please try again later.")
@@ -272,6 +286,7 @@ export default function DoctorSearchPage() {
               type="doctors"
               showFilters
               placeholder={searchTerm || "Search doctors by name or specialty..."}
+              //@ts-ignore
               defaultValue={searchTerm}
           />
         </div>
@@ -294,12 +309,23 @@ export default function DoctorSearchPage() {
               <div className="mb-4">
                 {doctors.length > 0 && (
                     <p className="text-sm text-gray-600">
-                      Showing {doctors.length} doctors within 10km of your location
-                      {searchTerm ? ` matching "${searchTerm}"` : ''}
+                      {userCoords ? (
+                          <>
+                            Showing {doctors.length} doctors
+                            {doctors.some(d => d.distanceValue && d.distanceValue <= 10000)
+                                ? ' within 10km of your location'
+                                : ' (none within 10km, showing all doctors)'}
+                            {searchTerm ? ` matching "${searchTerm}"` : ''}
+                          </>
+                      ) : (
+                          <>
+                            Showing {doctors.length} doctors
+                            {searchTerm ? ` matching "${searchTerm}"` : ''}
+                          </>
+                      )}
                     </p>
                 )}
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {doctors.length > 0 ? (
                     doctors.map((doctor) => (
@@ -406,6 +432,7 @@ export default function DoctorSearchPage() {
                       <p className="text-gray-500 text-lg">
                         No doctors found within 10km {searchTerm ? `matching "${searchTerm}"` : ''}
                       </p>
+
                     </div>
                 )}
               </div>

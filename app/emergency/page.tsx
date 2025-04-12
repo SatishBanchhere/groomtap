@@ -12,9 +12,9 @@ export default function EmergencyPage() {
             <PageHeader title="Emergency Services" breadcrumb={["Home", "Emergency"]} />
             <div className="bg-gray-50 py-6">
                 <div className="container mx-auto px-4">
-                    <AnimatedSection animation="slideUp" delay={0.2}>
-                        <EmergencySearch />
-                    </AnimatedSection>
+                    {/*<AnimatedSection animation="slideUp" delay={0.2}>*/}
+                    {/*    <EmergencySearch />*/}
+                    {/*</AnimatedSection>*/}
                     <AnimatedSection animation="fadeIn" delay={0.4}>
                         <EmergencyResults />
                     </AnimatedSection>

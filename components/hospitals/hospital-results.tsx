@@ -31,7 +31,17 @@ export default function HospitalResults({ hospitals }: HospitalResultsProps) {
     })
 
     return (
+
         <div>
+            <p className="text-sm text-gray-600 mb-4">
+                {
+                    hospitals.some(d => d.distanceValue && d.distanceValue <= 10000) ?
+                        (`Showing ${hospitals.length} hospitals within 15km of your location`)
+                    :
+                        (`Showing ${hospitals.length} hospitals none within the range`)
+                }
+            </p>
+
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold">Showing {filteredHospitals?.length} Results</h2>
                 <div className="flex items-center space-x-2">

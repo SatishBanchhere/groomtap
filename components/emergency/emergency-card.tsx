@@ -28,6 +28,7 @@ type EmergencyCardProps = {
             name: string
             startTime: string
             endTime: string
+            fees: number
         }[]
         location: {
             address: string
@@ -40,7 +41,7 @@ type EmergencyCardProps = {
     }
 }
 
-export default function EmergencyCard({ hospital }: EmergencyCardProps) {
+export default function EmergencyCard({ hospital, user }: EmergencyCardProps) {
     const [isBookingOpen, setIsBookingOpen] = useState(false)
     const [patientName, setPatientName] = useState("")
     const [phoneNumber, setPhoneNumber] = useState("")
@@ -51,41 +52,83 @@ export default function EmergencyCard({ hospital }: EmergencyCardProps) {
 
     const handleBookEmergency = async () => {
         try {
-            setIsSubmitting(true)
+            setIsSubmitting(true);
 
             const selectedServiceData = hospital.emergencyServices.find(
-                s => s.name === selectedService
-            )
+                (s) => s.name === selectedService
+            );
 
             if (!selectedServiceData) {
-                throw new Error("Selected service not found")
+                throw new Error("Selected service not found");
             }
 
-            const emergencyBooking = {
-                hospitalId: hospital.id,
-                hospitalName: hospital.fullName,
-                emergencyType: selectedService,
-                serviceDetails: selectedServiceData,
-                hasEmergencyServices: true,
-                location: hospital.location,
-                patientName,
-                phoneNumber,
-                additionalDetails,
-                status: "Pending",
-                timestamp: new Date(),
-                userId: "",     // Replace with actual auth user id if available
-                userEmail: ""   // Replace with actual auth user email if available
+            // Load Razorpay script
+            const loadRazorpay = () => {
+                return new Promise((resolve) => {
+                    const script = document.createElement("script");
+                    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+                    script.onload = () => resolve(true);
+                    script.onerror = () => resolve(false);
+                    document.body.appendChild(script);
+                });
+            };
+
+            const res = await loadRazorpay();
+            if (!res) {
+                alert("Razorpay SDK failed to load. Are you online?");
+                return;
             }
 
-            await addDoc(collection(db, "emergencyData"), emergencyBooking)
-            setIsBookingOpen(false)
-            router.push("/appointments")
+            const amountInPaise = selectedServiceData.fees * 100;
+
+            const options = {
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_YourTestKeyHere", // use your Razorpay Test Key
+                amount: amountInPaise,
+                currency: "INR",
+                name: "DocZappoint",
+                description: `Emergency Service - ${selectedService}`,
+                handler: async function (response) {
+                    // Only after payment success
+                    const emergencyBooking = {
+                        hospitalId: hospital.id,
+                        hospitalName: hospital.fullName,
+                        emergencyType: selectedService,
+                        serviceDetails: selectedServiceData,
+                        fees: selectedServiceData.fees,
+                        hasEmergencyServices: true,
+                        location: hospital.location,
+                        patientName,
+                        phoneNumber,
+                        additionalDetails,
+                        status: "Pending",
+                        timestamp: new Date(),
+                        userId: user?.uid || "", // optional if logged in
+                        userEmail: user?.email || "",
+                        paymentId: response.razorpay_payment_id
+                    };
+
+                    await addDoc(collection(db, "emergencyData"), emergencyBooking);
+                    setIsBookingOpen(false);
+                },
+                prefill: {
+                    name: patientName,
+                    email: user?.email || "",
+                    contact: phoneNumber
+                },
+                theme: {
+                    color: "#3399cc"
+                }
+            };
+
+            const paymentObject = new window.Razorpay(options);
+            paymentObject.open();
+
         } catch (error) {
-            console.error("Booking failed:", error)
+            console.error("Booking failed:", error);
         } finally {
-            setIsSubmitting(false)
+            setIsSubmitting(false);
         }
-    }
+    };
 
     return (
         <div className="border rounded-xl p-4 shadow-md bg-white space-y-4">
@@ -163,7 +206,7 @@ export default function EmergencyCard({ hospital }: EmergencyCardProps) {
                                 <option value="">-- Select --</option>
                                 {hospital.emergencyServices.map(service => (
                                     <option key={service.name} value={service.name}>
-                                        {service.name}
+                                        {service.name}  ₹{service.fees}
                                     </option>
                                 ))}
                             </select>

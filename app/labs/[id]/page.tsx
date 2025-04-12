@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/auth-context';
-import { doc, getDoc, collection, query, where, getDocs, addDoc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useRouter, useParams } from 'next/navigation';
+import { ChangeEvent, useEffect, useState} from 'react';
+import {useAuth} from '@/contexts/auth-context';
+import {doc, getDoc, collection, query, where, getDocs, addDoc, updateDoc} from 'firebase/firestore';
+import {db} from '@/lib/firebase';
+import {useRouter, useParams} from 'next/navigation';
 import Image from 'next/image';
-import { Share2, Heart, Star } from 'lucide-react';
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
+import {Share2, Heart, Star} from 'lucide-react';
+import {Dialog, Transition} from '@headlessui/react';
+import {Fragment} from 'react';
 import PageHeader from '@/components/shared/page-header';
 
 type TimeSlot = {
@@ -90,8 +90,8 @@ function formatDateForFirebase(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-export default function DoctorDetailPage({ params }: { params: { id: string } }) {
-  const { user, signInWithGoogle } = useAuth();
+export default function DoctorDetailPage({params}: { params: { id: string } }) {
+  const {user, signInWithGoogle} = useAuth();
   const router = useRouter();
   const [lab, setLab] = useState<Lab | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -115,8 +115,9 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
   });
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [averageRating, setAverageRating] = useState(0);
+  const [error, setError] = useState()
   //@ts-ignore
-  const { id } = useParams();
+  const {id} = useParams();
 
   function closeModal() {
     setIsOpen(false);
@@ -131,7 +132,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
       const docRef = doc(db, 'lab_form', id);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        setLab({ id: docSnap.id, ...docSnap.data() } as Lab);
+        setLab({id: docSnap.id, ...docSnap.data()} as Lab);
         setTests(docSnap.data().specialties as Test[]);
       }
 
@@ -160,12 +161,18 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
     const fetchSchedule = async () => {
       if (!selectedDate) return;
 
+      const dayOfWeek = selectedDate.getDay();
+      console.log(dayOfWeek);
+
+      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const dayName = dayNames[dayOfWeek];
       const schedulesRef = collection(db, `labs/${id}/schedules`);
-      const q = query(schedulesRef);
+      const q = query(schedulesRef, where("day", "==", dayName));
 
       const querySnapshot = await getDocs(q);
       if (!querySnapshot.empty) {
         const scheduleData = querySnapshot.docs[0].data();
+        console.log(scheduleData);
         setSchedule({
           id: querySnapshot.docs[0].id,
           ...scheduleData
@@ -196,6 +203,30 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
     }, 0);
   };
 
+  const handleDateSelect = async (e: ChangeEvent<HTMLInputElement>) => {
+    setSelectedDate(new Date(e.currentTarget.value));
+
+    const selected = new Date(e.target.value);
+    setSelectedDate(selected);
+
+    const dayOfWeek = selected.getDay();
+    console.log(dayOfWeek);
+
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const dayName = dayNames[dayOfWeek];
+
+    const lebRef = collection(db, `labs/${id}/schedules`);
+    const q = query(lebRef, where("day", "==", dayName));
+    const labQuerySnapshot = await getDocs(q);
+
+    if(labQuerySnapshot.empty){
+      setError(`Lab is not available on ${ dayName }`);
+    }
+    else{
+      setError("")
+    }
+  }
+
   const handleBooking = async (timeSlot: TimeSlot) => {
     if (!user) {
       await signInWithGoogle();
@@ -210,47 +241,95 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
     if (!selectedTimeSlot || !selectedDate || !lab || !user) return;
     if (!bookingData.phoneNumber || !bookingData.patientName || bookingData.selectedTests.length === 0) return;
 
-    try {
-      const totalCharge = calculateTotalCharge();
-      const selectedTestsDetails = bookingData.selectedTests.map(selectedTest => {
-        const test = tests?.find(t => t.name === selectedTest.name);
-        let charge = 0;
-        if (test?.serviceType === 'both') {
-          charge = selectedTest.serviceType === 'home' ?
-              parseInt(test.homeCharge || '0') : parseInt(test.visitCharge || '0');
-        } else {
-          charge = parseInt(test?.charge || '0');
-        }
+    const totalCharge = calculateTotalCharge();
 
-        return {
-          name: selectedTest.name,
-          serviceType: selectedTest.serviceType,
-          charge: charge
-        };
-      });
+    const selectedTestsDetails = bookingData.selectedTests.map(selectedTest => {
+      const test = tests?.find(t => t.name === selectedTest.name);
+      let charge = 0;
+      if (test?.serviceType === 'both') {
+        charge = selectedTest.serviceType === 'home'
+            ? parseInt(test.homeCharge || '0')
+            : parseInt(test.visitCharge || '0');
+      } else {
+        charge = parseInt(test?.charge || '0');
+      }
 
-      const appointment = {
-        labUid: id,
-        labName: lab.fullName,
-        patientId: user.uid,
-        patientName: bookingData.patientName,
-        phoneNumber: bookingData.phoneNumber,
-        date: formatDateForFirebase(selectedDate),
-        day: daysOfWeek[selectedDate.getDay()],
-        timeSlot: selectedTimeSlot.start,
-        createdAt: new Date().toISOString(),
-        status: 'scheduled',
-        location: lab.location,
-        consultationFees: totalCharge,
-        tests: selectedTestsDetails,
-        paymentMethod: bookingData.paymentMethod
+      return {
+        name: selectedTest.name,
+        serviceType: selectedTest.serviceType,
+        charge: charge
       };
+    });
 
-      await addDoc(collection(db, 'AppointmentsLab'), appointment);
-      openModal();
-    } catch (error) {
-      console.error('Error booking appointment:', error);
+    // Load Razorpay SDK
+    const loadRazorpay = () => {
+      return new Promise((resolve) => {
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+      });
+    };
+
+    const res = await loadRazorpay();
+    if (!res) {
+      alert("Razorpay SDK failed to load. Are you online?");
+      return;
     }
+
+    // Razorpay options for test mode (no backend)
+    const options = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_abc123xyz", // use test key or from .env
+      amount: totalCharge * 100, // in paise
+      currency: "INR",
+      name: "DocZappoint Labs",
+      description: "Lab Test Booking Payment",
+      image: "/logo.png", // optional
+      handler: async function (response) {
+        // On successful payment, store appointment in Firestore
+        const appointment = {
+          labUid: lab.uid || lab.id || "", // fallback
+          labName: lab.fullName,
+          patientId: user.uid,
+          patientName: bookingData.patientName,
+          phoneNumber: bookingData.phoneNumber,
+          date: formatDateForFirebase(selectedDate),
+          day: daysOfWeek[selectedDate.getDay()],
+          timeSlot: selectedTimeSlot.start,
+          createdAt: new Date().toISOString(),
+          status: 'scheduled',
+          location: lab.location,
+          consultationFees: totalCharge,
+          tests: selectedTestsDetails,
+          paymentMethod: "online",
+          paymentId: response.razorpay_payment_id,
+        };
+
+        try {
+          await addDoc(collection(db, 'AppointmentsLab'), appointment);
+          openModal();
+        } catch (error) {
+          console.error('Error saving appointment:', error);
+          alert("Payment was successful, but booking failed. Contact support.");
+        }
+      },
+      prefill: {
+        name: bookingData.patientName,
+        email: user.email,
+        contact: bookingData.phoneNumber,
+      },
+      notes: {
+        labId: lab.id,
+        userId: user.uid,
+      },
+      theme: {
+        color: "#0E90DB"
+      }
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
   };
 
   const handleReviewSubmit = async () => {
@@ -501,10 +580,16 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                   <input
                       type="date"
                       className="w-full p-2 border rounded-md"
-                      onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                      onChange={(e) => handleDateSelect(e)}
                       min={new Date().toISOString().split('T')[0]}
                   />
                 </div>
+
+                {error && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {error}
+                    </p>
+                )}
 
                 {selectedDate && schedule && (
                     <div className="mb-6">
@@ -719,7 +804,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                         as="h3"
                         className="text-lg font-medium leading-6 text-gray-900"
                     >
-                      Confirm Your Lab Tests
+                      Your Lab Tests are booked successfully
                     </Dialog.Title>
                     <div className="mt-4">
                       <p className="text-sm text-gray-500">
@@ -757,18 +842,11 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                           className="inline-flex justify-center rounded-md border border-transparent bg-[#ff8a3c] px-4 py-2 text-sm font-medium text-white hover:bg-[#ff7a2c] focus:outline-none"
                           onClick={() => {
                             closeModal();
-                            router.push('/appointments');
                           }}
                       >
                         Confirm Booking
                       </button>
-                      <button
-                          type="button"
-                          className="inline-flex justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
-                          onClick={closeModal}
-                      >
-                        Cancel
-                      </button>
+
                     </div>
                   </Dialog.Panel>
                 </Transition.Child>

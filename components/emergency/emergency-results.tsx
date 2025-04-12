@@ -6,16 +6,18 @@ import { db } from "@/lib/firebase"
 import EmergencyCard from "./emergency-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSearchParams } from "next/navigation"
+import {useAuth} from "@/contexts/auth-context";
 
 type HospitalWithEmergency = {
     id: string
-    name: string
+    fullName: string
     imageUrl?: string
     emergencyServices: {
         is24x7: boolean
         name: string
         startTime: string
         endTime: string
+        fees: number
     }[]
     location: {
         address: string
@@ -44,6 +46,7 @@ export default function EmergencyResults() {
     const [userCoords, setUserCoords] = useState<Coordinates | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const { user } = useAuth()
 
     useEffect(() => {
         const getUserLocation = async () => {
@@ -198,14 +201,28 @@ export default function EmergencyResults() {
                 hospital.distanceValue !== undefined && hospital.distanceValue <= 15000
             )
 
-            const sortedHospitals = nearbyHospitals.sort((a, b) => {
-                if (a.distanceValue !== undefined && b.distanceValue !== undefined) {
-                    return a.distanceValue - b.distanceValue
-                }
-                return 0
-            })
+            if(nearbyHospitals.length === 0){
+                const sortedHospitals = processedHospitals.sort((a, b) => {
+                    if (a.distanceValue !== undefined && b.distanceValue !== undefined) {
+                        return a.distanceValue - b.distanceValue
+                    }
+                    return 0
+                })
 
-            setHospitals(sortedHospitals)
+                setHospitals(sortedHospitals)
+            }
+            else{
+
+                const sortedHospitals = nearbyHospitals.sort((a, b) => {
+                    if (a.distanceValue !== undefined && b.distanceValue !== undefined) {
+                        return a.distanceValue - b.distanceValue
+                    }
+                    return 0
+                })
+
+                setHospitals(sortedHospitals)
+            }
+
         } catch (err) {
             console.error("Error fetching hospitals:", err)
             setError("Failed to load emergency services. Please try again later.")
@@ -280,13 +297,20 @@ export default function EmergencyResults() {
     return (
         <>
             <p className="text-sm text-gray-600 mb-4">
-                Showing {filteredHospitals.length} emergency services within 15km of your location
-                {emergencyType ? ` for "${emergencyType}"` : ''}
-                {location ? ` near "${location}"` : ''}
+                <p className="text-sm text-gray-600 mb-4">
+                    {
+                        hospitals.some(d => d.distanceValue && d.distanceValue <= 10000) ?
+                            (`Showing ${hospitals.length} hospitals within 15km of your location`)
+                            :
+                            (`Showing ${hospitals.length} hospitals none within the range`)
+                    }
+                </p>
+                {/*{emergencyType ? ` for "${emergencyType}"` : ''}*/}
+                {/*{location ? ` near "${location}"` : ''}*/}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredHospitals.map((hospital) => (
-                    <EmergencyCard key={hospital.id} hospital={hospital} />
+                    <EmergencyCard key={hospital.id} hospital={hospital} user={user}/>
                 ))}
             </div>
         </>
