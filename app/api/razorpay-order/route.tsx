@@ -1,1 +1,0 @@
-import Razorpay from 'razorpay';

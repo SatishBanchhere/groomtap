@@ -192,6 +192,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const dayName = dayNames[dayOfWeek];
 
+      console.log(doctor.availability[dayName])
     if(!doctor.availability[dayName]) {
       setError(`Doctor is not available on ${dayName}`);
     } else {
@@ -221,6 +222,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
       docId = querySnapshot.docs[0].id;
     }
 
+    // Load Razorpay SDK
     const loadRazorpay = () => {
       return new Promise((resolve) => {
         const script = document.createElement("script");
@@ -237,48 +239,86 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
       return;
     }
 
-    const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      amount: doctor.consultationFees * 100,
-      currency: "INR",
-      name: "DocZappoint",
-      description: "Doctor Consultation Fee",
-      handler: async function (response) {
-        const appointment = {
-          doctorId: id,
-          doctorName: doctor.fullName,
-          patientId: docId || user.uid,
-          patientName: bookingData.patientName,
-          phoneNumber: bookingData.phoneNumber,
-          date: formatDateForFirebase(selectedDate),
-          day: daysOfWeek[selectedDate.getDay()],
-          timeSlot: selectedTimeSlot.start,
-          createdAt: new Date().toISOString(),
-          status: 'scheduled',
-          location: doctor.location,
-          consultationFees: doctor.consultationFees,
-          paymentMethod: bookingData.paymentMethod,
-          paymentId: response.razorpay_payment_id,
-          isTestPayment: true,
-        };
+    try {
+      // Step 1: Call backend to create Razorpay order
+      const orderResponse = await fetch('/api/createOrder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: parseInt(doctor.consultationFees) * 100, // in paise
+          doctorId: doctor.id,
+          userId: user.uid
+        })
+      });
 
-        await addDoc(collection(db, 'Appointments'), appointment);
-        openModal();
-      },
-      prefill: {
-        name: bookingData.patientName,
-        email: user.email,
-        contact: bookingData.phoneNumber,
-      },
-      theme: {
-        color: "#0ea5e9",
-      },
-    };
+      if (!orderResponse.ok) {
+        throw new Error('Failed to create payment order');
+      }
 
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+      const { id: orderId } = await orderResponse.json();
+
+      // Step 2: Initialize Razorpay with the order ID
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: parseInt(doctor.consultationFees) * 100,
+        currency: "INR",
+        order_id: orderId, // Critical: Comes from backend
+        name: "DocZappoint",
+        description: "Doctor Consultation Fee",
+        image: "/logo.png",
+        handler: async function (response) {
+          // On successful payment
+          const appointment = {
+            doctorId: id,
+            doctorName: doctor.fullName,
+            patientId: docId || user.uid,
+            patientName: bookingData.patientName,
+            phoneNumber: bookingData.phoneNumber,
+            date: formatDateForFirebase(selectedDate),
+            day: daysOfWeek[selectedDate.getDay()],
+            timeSlot: selectedTimeSlot.start,
+            createdAt: new Date().toISOString(),
+            status: 'scheduled',
+            location: doctor.location,
+            consultationFees: doctor.consultationFees,
+            paymentMethod: "online",
+            paymentId: response.razorpay_payment_id,
+            orderId: orderId,
+            isTestPayment: true,
+          };
+
+          try {
+            await addDoc(collection(db, 'Appointments'), appointment);
+            openModal();
+          } catch (error) {
+            console.error('Error saving appointment:', error);
+            alert("Payment was successful, but booking failed. Contact support.");
+          }
+        },
+        prefill: {
+          name: bookingData.patientName,
+          email: user.email,
+          contact: bookingData.phoneNumber,
+        },
+        notes: {
+          doctorId: doctor.id,
+          userId: user.uid,
+        },
+        theme: {
+          color: "#0ea5e9",
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
+    } catch (error) {
+      console.error('Payment initialization failed:', error);
+      alert("Failed to initialize payment. Please try again.");
+    }
   };
-
   const handleReviewSubmit = async () => {
     if (!user || !newReview.comment || newReview.rating === 0) return;
 

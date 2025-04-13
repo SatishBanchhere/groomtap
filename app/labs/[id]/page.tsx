@@ -238,11 +238,14 @@ export default function DoctorDetailPage({params}: { params: { id: string } }) {
   };
 
   const confirmBooking = async () => {
+    // Validate required fields
     if (!selectedTimeSlot || !selectedDate || !lab || !user) return;
     if (!bookingData.phoneNumber || !bookingData.patientName || bookingData.selectedTests.length === 0) return;
 
+    // Calculate charges
     const totalCharge = calculateTotalCharge();
 
+    // Prepare test details
     const selectedTestsDetails = bookingData.selectedTests.map(selectedTest => {
       const test = tests?.find(t => t.name === selectedTest.name);
       let charge = 0;
@@ -253,7 +256,6 @@ export default function DoctorDetailPage({params}: { params: { id: string } }) {
       } else {
         charge = parseInt(test?.charge || '0');
       }
-
       return {
         name: selectedTest.name,
         serviceType: selectedTest.serviceType,
@@ -278,60 +280,87 @@ export default function DoctorDetailPage({params}: { params: { id: string } }) {
       return;
     }
 
-    // Razorpay options for test mode (no backend)
-    const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_abc123xyz", // use test key or from .env
-      amount: totalCharge * 100, // in paise
-      currency: "INR",
-      name: "DocZappoint Labs",
-      description: "Lab Test Booking Payment",
-      image: "/logo.png", // optional
-      handler: async function (response) {
-        // On successful payment, store appointment in Firestore
-        const appointment = {
-          labUid: lab.uid || lab.id || "", // fallback
-          labName: lab.fullName,
-          patientId: user.uid,
-          patientName: bookingData.patientName,
-          phoneNumber: bookingData.phoneNumber,
-          date: formatDateForFirebase(selectedDate),
-          day: daysOfWeek[selectedDate.getDay()],
-          timeSlot: selectedTimeSlot.start,
-          createdAt: new Date().toISOString(),
-          status: 'scheduled',
-          location: lab.location,
-          consultationFees: totalCharge,
+    try {
+      // Step 1: Call backend to create Razorpay order
+      const orderResponse = await fetch('/api/createOrder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: totalCharge * 100, // in paise
           tests: selectedTestsDetails,
-          paymentMethod: "online",
-          paymentId: response.razorpay_payment_id,
-        };
+          labId: lab.id,
+          userId: user.uid
+        })
+      });
 
-        try {
-          await addDoc(collection(db, 'AppointmentsLab'), appointment);
-          openModal();
-        } catch (error) {
-          console.error('Error saving appointment:', error);
-          alert("Payment was successful, but booking failed. Contact support.");
-        }
-      },
-      prefill: {
-        name: bookingData.patientName,
-        email: user.email,
-        contact: bookingData.phoneNumber,
-      },
-      notes: {
-        labId: lab.id,
-        userId: user.uid,
-      },
-      theme: {
-        color: "#0E90DB"
+      if (!orderResponse.ok) {
+        throw new Error('Failed to create payment order');
       }
-    };
 
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+      const { id: orderId } = await orderResponse.json();
+      console.log(orderId);
+      // Step 2: Initialize Razorpay with the order ID
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: totalCharge * 100,
+        currency: "INR",
+        order_id: orderId, // Critical: Comes from backend
+        name: "DocZappoint Labs",
+        description: "Lab Test Booking Payment",
+        image: "/logo.png",
+        handler: async function (response) {
+          // On successful payment
+          const appointment = {
+            labUid: lab.uid || lab.id || "",
+            labName: lab.fullName,
+            patientId: user.uid,
+            patientName: bookingData.patientName,
+            phoneNumber: bookingData.phoneNumber,
+            date: formatDateForFirebase(selectedDate),
+            day: daysOfWeek[selectedDate.getDay()],
+            timeSlot: selectedTimeSlot.start,
+            createdAt: new Date().toISOString(),
+            status: 'scheduled',
+            location: lab.location,
+            consultationFees: totalCharge,
+            tests: selectedTestsDetails,
+            paymentMethod: "online",
+            paymentId: response.razorpay_payment_id,
+            orderId: orderId // Store the order ID for reference
+          };
+
+          try {
+            await addDoc(collection(db, 'AppointmentsLab'), appointment);
+            openModal();
+          } catch (error) {
+            console.error('Error saving appointment:', error);
+            alert("Payment was successful, but booking failed. Contact support.");
+          }
+        },
+        prefill: {
+          name: bookingData.patientName,
+          email: user.email,
+          contact: bookingData.phoneNumber,
+        },
+        notes: {
+          labId: lab.id,
+          userId: user.uid,
+        },
+        theme: {
+          color: "#0E90DB"
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
+    } catch (error) {
+      console.error('Payment initialization failed:', error);
+      alert("Failed to initialize payment. Please try again.");
+    }
   };
-
   const handleReviewSubmit = async () => {
     if (!user || !newReview.comment || newReview.rating === 0) return;
 

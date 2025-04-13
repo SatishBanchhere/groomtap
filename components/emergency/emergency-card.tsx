@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
-import { collection, addDoc } from "firebase/firestore"
+import { collection, addDoc, doc, updateDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
 type EmergencyCardProps = {
@@ -39,6 +39,11 @@ type EmergencyCardProps = {
         }
         status: string
     }
+    user?: {
+        uid: string
+        email: string
+        displayName?: string
+    }
 }
 
 export default function EmergencyCard({ hospital, user }: EmergencyCardProps) {
@@ -47,88 +52,151 @@ export default function EmergencyCard({ hospital, user }: EmergencyCardProps) {
     const [phoneNumber, setPhoneNumber] = useState("")
     const [selectedService, setSelectedService] = useState("")
     const [additionalDetails, setAdditionalDetails] = useState("")
+    const [patientAddress, setPatientAddress] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [error, setError] = useState("")
     const router = useRouter()
 
     const handleBookEmergency = async () => {
         try {
-            setIsSubmitting(true);
+            setIsBookingOpen(false)
+            // Validate inputs
+            if (!patientName || !phoneNumber || !selectedService || !patientAddress) {
+                setError("Please fill all required fields")
+                return
+            }
+
+            setIsSubmitting(true)
+            setError("")
 
             const selectedServiceData = hospital.emergencyServices.find(
                 (s) => s.name === selectedService
-            );
+            )
 
             if (!selectedServiceData) {
-                throw new Error("Selected service not found");
+                throw new Error("Selected service not found")
             }
+
+            // Create initial booking record
+            const bookingData = {
+                hospitalId: hospital.id,
+                hospitalName: hospital.fullName,
+                emergencyType: selectedService,
+                serviceDetails: selectedServiceData,
+                fees: selectedServiceData.fees,
+                hasEmergencyServices: true,
+                patientName,
+                phoneNumber,
+                additionalDetails,
+                status: "pending_payment",
+                timestamp: new Date(),
+                userId: user?.uid || "",
+                userEmail: user?.email || "",
+                patientAddress,
+                paymentStatus: "initiated"
+            }
+
+            // Add to emergencyData collection
+            const bookingRef = await addDoc(collection(db, "emergencyData"), bookingData)
 
             // Load Razorpay script
             const loadRazorpay = () => {
                 return new Promise((resolve) => {
-                    const script = document.createElement("script");
-                    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-                    script.onload = () => resolve(true);
-                    script.onerror = () => resolve(false);
-                    document.body.appendChild(script);
-                });
-            };
-
-            const res = await loadRazorpay();
-            if (!res) {
-                alert("Razorpay SDK failed to load. Are you online?");
-                return;
+                    const script = document.createElement("script")
+                    script.src = "https://checkout.razorpay.com/v1/checkout.js"
+                    script.onload = () => resolve(true)
+                    script.onerror = () => resolve(false)
+                    document.body.appendChild(script)
+                })
             }
 
-            const amountInPaise = selectedServiceData.fees * 100;
+            const res = await loadRazorpay()
+            if (!res) {
+                throw new Error("Razorpay SDK failed to load")
+            }
+
+            // Create order on backend
+            const orderResponse = await fetch('/api/createOrder', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    amount: selectedServiceData.fees * 100,
+                    bookingId: bookingRef.id,
+                    serviceName: selectedService,
+                    hospitalId: hospital.id
+                })
+            })
+
+            if (!orderResponse.ok) {
+                throw new Error('Failed to create payment order')
+            }
+
+            const orderData = await orderResponse.json()
 
             const options = {
-                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_YourTestKeyHere", // use your Razorpay Test Key
-                amount: amountInPaise,
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                amount: selectedServiceData.fees * 100,
                 currency: "INR",
-                name: "DocZappoint",
-                description: `Emergency Service - ${selectedService}`,
+                order_id: orderData.id,
+                name: "Emergency Service Booking",
+                description: `Emergency: ${selectedService} at ${hospital.fullName}`,
+                image: "/logo.png",
                 handler: async function (response) {
-                    // Only after payment success
-                    const emergencyBooking = {
-                        hospitalId: hospital.id,
-                        hospitalName: hospital.fullName,
-                        emergencyType: selectedService,
-                        serviceDetails: selectedServiceData,
-                        fees: selectedServiceData.fees,
-                        hasEmergencyServices: true,
-                        location: hospital.location,
-                        patientName,
-                        phoneNumber,
-                        additionalDetails,
-                        status: "Pending",
-                        timestamp: new Date(),
-                        userId: user?.uid || "", // optional if logged in
-                        userEmail: user?.email || "",
-                        paymentId: response.razorpay_payment_id
-                    };
+                    try {
+                        // Update booking status in emergencyData collection
+                        await updateDoc(doc(db, "emergencyData", bookingRef.id), {
+                            status: "booked",
+                            paymentId: response.razorpay_payment_id,
+                            paymentStatus: "completed",
+                            orderId: orderData.id,
+                            updatedAt: new Date()
+                        })
 
-                    await addDoc(collection(db, "emergencyData"), emergencyBooking);
-                    setIsBookingOpen(false);
+                        setIsBookingOpen(false)
+                        // router.push(`/bookings/${bookingRef.id}`)
+                    } catch (error) {
+                        console.error("Failed to update booking:", error)
+                        setError("Payment successful but failed to update booking. Please contact support.")
+                    }
                 },
                 prefill: {
                     name: patientName,
                     email: user?.email || "",
                     contact: phoneNumber
                 },
+                notes: {
+                    bookingId: bookingRef.id,
+                    hospitalId: hospital.id,
+                    service: selectedService
+                },
                 theme: {
                     color: "#3399cc"
                 }
-            };
+            }
 
-            const paymentObject = new window.Razorpay(options);
-            paymentObject.open();
+            const paymentObject = new window.Razorpay(options)
+
+            paymentObject.on('payment.failed', function (response) {
+                updateDoc(doc(db, "emergencyData", bookingRef.id), {
+                    status: "payment_failed",
+                    paymentStatus: "failed",
+                    failureReason: response.error.description,
+                    updatedAt: new Date()
+                })
+                setError(`Payment failed: ${response.error.description}`)
+            })
+
+            paymentObject.open()
 
         } catch (error) {
-            console.error("Booking failed:", error);
+            console.error("Booking failed:", error)
+            setError(error.message || "An error occurred during booking")
         } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false)
         }
-    };
+    }
 
     return (
         <div className="border rounded-xl p-4 shadow-md bg-white space-y-4">
@@ -149,7 +217,7 @@ export default function EmergencyCard({ hospital, user }: EmergencyCardProps) {
             <div className="space-y-2">
                 <h2 className="text-xl font-semibold">{hospital.fullName}</h2>
                 <div className="flex items-center text-sm text-gray-600">
-                <MapPin className="w-4 h-4 mr-1" />
+                    <MapPin className="w-4 h-4 mr-1" />
                     {hospital.location.address}, {hospital.location.city}
                 </div>
                 <div className="flex flex-col gap-1 mt-2">
@@ -161,6 +229,7 @@ export default function EmergencyCard({ hospital, user }: EmergencyCardProps) {
                             <span>
                                 {service.is24x7 ? "24x7" : `${service.startTime} - ${service.endTime}`}
                             </span>
+                            <span className="font-medium">₹{service.fees}</span>
                         </div>
                     ))}
                 </div>
@@ -169,7 +238,7 @@ export default function EmergencyCard({ hospital, user }: EmergencyCardProps) {
             <Button onClick={() => setIsBookingOpen(true)}>Book Emergency</Button>
 
             <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-                <DialogContent>
+                <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>Book Emergency Service</DialogTitle>
                         <DialogDescription>
@@ -177,53 +246,76 @@ export default function EmergencyCard({ hospital, user }: EmergencyCardProps) {
                         </DialogDescription>
                     </DialogHeader>
 
+                    {error && (
+                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded-md text-sm">
+                            {error}
+                        </div>
+                    )}
+
                     <div className="space-y-4 py-2">
                         <div>
-                            <Label htmlFor="name">Patient Name</Label>
+                            <Label htmlFor="name">Patient Name *</Label>
                             <Input
                                 id="name"
                                 value={patientName}
                                 onChange={e => setPatientName(e.target.value)}
+                                required
                             />
                         </div>
                         <div>
-                            <Label htmlFor="phone">Phone Number</Label>
+                            <Label htmlFor="phone">Phone Number *</Label>
                             <Input
                                 id="phone"
                                 type="tel"
                                 value={phoneNumber}
                                 onChange={e => setPhoneNumber(e.target.value)}
+                                required
                             />
                         </div>
                         <div>
-                            <Label htmlFor="service">Select Service</Label>
+                            <Label htmlFor="address">Patient Address *</Label>
+                            <Input
+                                id="address"
+                                value={patientAddress}
+                                onChange={e => setPatientAddress(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="service">Select Service *</Label>
                             <select
                                 id="service"
                                 value={selectedService}
                                 onChange={e => setSelectedService(e.target.value)}
-                                className="w-full border p-2 rounded-md"
+                                className="w-full border p-2 rounded-md text-sm"
+                                required
                             >
-                                <option value="">-- Select --</option>
+                                <option value="">-- Select Emergency Service --</option>
                                 {hospital.emergencyServices.map(service => (
                                     <option key={service.name} value={service.name}>
-                                        {service.name}  ₹{service.fees}
+                                        {service.name} (₹{service.fees})
                                     </option>
                                 ))}
                             </select>
                         </div>
                         <div>
-                            <Label htmlFor="details">Additional Details</Label>
+                            <Label htmlFor="details">Additional Medical Details</Label>
                             <Input
                                 id="details"
                                 value={additionalDetails}
                                 onChange={e => setAdditionalDetails(e.target.value)}
+                                placeholder="Any critical information about the patient"
                             />
                         </div>
                     </div>
 
                     <DialogFooter>
-                        <Button onClick={handleBookEmergency} disabled={isSubmitting}>
-                            {isSubmitting ? "Booking..." : "Submit"}
+                        <Button
+                            onClick={handleBookEmergency}
+                            disabled={isSubmitting}
+                            className="w-full"
+                        >
+                            {isSubmitting ? "Processing..." : "Confirm & Pay"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
