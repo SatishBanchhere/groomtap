@@ -198,7 +198,7 @@ export default function EmergencyResults() {
 
             // Filter hospitals to only show those within 15km (15000 meters)
             const nearbyHospitals = processedHospitals.filter(hospital =>
-                hospital.distanceValue !== undefined && hospital.distanceValue <= 15000
+                hospital.distanceValue !== undefined && hospital.distanceValue <= 100000
             )
 
             if(nearbyHospitals.length === 0){
@@ -284,7 +284,7 @@ export default function EmergencyResults() {
         return (
             <div className="text-center py-12">
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    No emergency services found within 15km
+                    No emergency services found within 100km
                 </h3>
                 <p className="text-gray-600">
                     {emergencyType || location ? "matching your criteria" : ""}
@@ -296,7 +296,6 @@ export default function EmergencyResults() {
 
     return (
         <>
-            <p className="text-sm text-gray-600 mb-4">
                 <p className="text-sm text-gray-600 mb-4">
                     {
                         hospitals.some(d => d.distanceValue && d.distanceValue <= 10000) ?
@@ -307,7 +306,6 @@ export default function EmergencyResults() {
                 </p>
                 {/*{emergencyType ? ` for "${emergencyType}"` : ''}*/}
                 {/*{location ? ` near "${location}"` : ''}*/}
-            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredHospitals.map((hospital) => (
                     <EmergencyCard key={hospital.id} hospital={hospital} user={user}/>

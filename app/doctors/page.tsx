@@ -222,9 +222,9 @@ export default function DoctorSearchPage() {
 
       const processedDoctors = await processDoctorsWithDistances(doctorsData)
 
-      // Filter doctors to only show those within 10km (10000 meters)
+      // Filter doctors to only show those within 100km (100000 meters)
       const nearbyDoctors = processedDoctors.filter(doctor =>
-          doctor.distanceValue !== undefined && doctor.distanceValue <= 10000
+          doctor.distanceValue !== undefined && doctor.distanceValue <= 100000
       )
 
       if(nearbyDoctors.length > 0) {
@@ -430,7 +430,7 @@ export default function DoctorSearchPage() {
                 ) : (
                     <div className="col-span-full text-center py-12">
                       <p className="text-gray-500 text-lg">
-                        No doctors found within 10km {searchTerm ? `matching "${searchTerm}"` : ''}
+                        No doctors found within 100km {searchTerm ? `matching "${searchTerm}"` : ''}
                       </p>
 
                     </div>

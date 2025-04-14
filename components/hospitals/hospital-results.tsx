@@ -35,8 +35,8 @@ export default function HospitalResults({ hospitals }: HospitalResultsProps) {
         <div>
             <p className="text-sm text-gray-600 mb-4">
                 {
-                    hospitals.some(d => d.distanceValue && d.distanceValue <= 10000) ?
-                        (`Showing ${hospitals.length} hospitals within 15km of your location`)
+                    hospitals.some(d => d.distanceValue && d.distanceValue <= 100000) ?
+                        (`Showing ${hospitals.length} hospitals within 100km of your location`)
                     :
                         (`Showing ${hospitals.length} hospitals none within the range`)
                 }
