@@ -410,14 +410,14 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                         <p className="text-gray-600 mb-2">{doctor.specialty}</p>
                         <p className="text-gray-500 text-sm mb-4">{doctor.qualifications}</p>
                       </div>
-                      <div className="flex gap-2 mt-2 md:mt-0">
-                        <button className="p-2 hover:bg-gray-100 rounded-full">
-                          <Share2 className="w-5 h-5 text-gray-500" />
-                        </button>
-                        <button className="p-2 hover:bg-gray-100 rounded-full">
-                          <Heart className="w-5 h-5 text-gray-500" />
-                        </button>
-                      </div>
+                      {/*<div className="flex gap-2 mt-2 md:mt-0">*/}
+                      {/*  <button className="p-2 hover:bg-gray-100 rounded-full">*/}
+                      {/*    <Share2 className="w-5 h-5 text-gray-500" />*/}
+                      {/*  </button>*/}
+                      {/*  <button className="p-2 hover:bg-gray-100 rounded-full">*/}
+                      {/*    <Heart className="w-5 h-5 text-gray-500" />*/}
+                      {/*  </button>*/}
+                      {/*</div>*/}
                     </div>
                     <div className="flex flex-col md:flex-row md:items-center gap-4">
                       <div className="flex items-center gap-1">
