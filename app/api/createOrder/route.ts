@@ -6,6 +6,13 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_SECRET!,
 });
 
+const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST",
+    "Access-Control-Allow-Headers": "Content-Type",
+};
+
+
 export async function POST(req: Request) {
     try {
         const body = await req.json();
@@ -13,7 +20,7 @@ export async function POST(req: Request) {
 
         // Validate amount
         if (!amount || isNaN(amount)) {
-            return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
+            return NextResponse.json({ error: "Invalid amount" }, { status: 400, headers: corsHeaders});
         }
 
         const options = {
@@ -31,12 +38,15 @@ export async function POST(req: Request) {
 
         const order = await razorpay.orders.create(options);
 
-        return NextResponse.json(order);
+        return new NextResponse(JSON.stringify(order), {
+            status: 200,
+            headers: corsHeaders
+        });
     } catch (error) {
         console.error("Razorpay Order Error:", error);
         return NextResponse.json(
             { error: "Error creating Razorpay order" },
-            { status: 500 }
+            { status: 500, headers: corsHeaders }
         );
     }
 }
