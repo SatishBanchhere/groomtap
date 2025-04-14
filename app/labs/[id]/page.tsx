@@ -41,7 +41,8 @@ type Test = {
 };
 
 type BookingFormData = {
-  phoneNumber: string;
+  patientAddress: string;
+  whatsapp: string;
   patientName: string;
   paymentMethod: 'razorpay' | null;
   selectedTests: { name: string; serviceType: string }[];
@@ -101,10 +102,11 @@ export default function DoctorDetailPage({params}: { params: { id: string } }) {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [tests, setTests] = useState<Test[] | null>(null);
   const [bookingData, setBookingData] = useState<BookingFormData>({
-    phoneNumber: '',
+    whatsapp: '',
     patientName: '',
     paymentMethod: null,
-    selectedTests: []
+    selectedTests: [],
+    patientAddress: ''
   });
   const [activeTab, setActiveTab] = useState<'about' | 'services' | 'healthcare' | 'review'>('about');
   const [isOpen, setIsOpen] = useState(false);
@@ -240,7 +242,7 @@ export default function DoctorDetailPage({params}: { params: { id: string } }) {
   const confirmBooking = async () => {
     // Validate required fields
     if (!selectedTimeSlot || !selectedDate || !lab || !user) return;
-    if (!bookingData.phoneNumber || !bookingData.patientName || bookingData.selectedTests.length === 0) return;
+    if (!bookingData.whatsapp || !bookingData.patientName || bookingData.selectedTests.length === 0) return;
 
     // Calculate charges
     const totalCharge = calculateTotalCharge();
@@ -317,7 +319,7 @@ export default function DoctorDetailPage({params}: { params: { id: string } }) {
             labName: lab.fullName,
             patientId: user.uid,
             patientName: bookingData.patientName,
-            phoneNumber: bookingData.phoneNumber,
+            whatsapp: bookingData.whatsapp,
             date: formatDateForFirebase(selectedDate),
             day: daysOfWeek[selectedDate.getDay()],
             timeSlot: selectedTimeSlot.start,
@@ -342,7 +344,7 @@ export default function DoctorDetailPage({params}: { params: { id: string } }) {
         prefill: {
           name: bookingData.patientName,
           email: user.email,
-          contact: bookingData.phoneNumber,
+          contact: bookingData.whatsapp,
         },
         notes: {
           labId: lab.id,
@@ -649,14 +651,14 @@ export default function DoctorDetailPage({params}: { params: { id: string } }) {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Phone Number
+                          Whatsapp Number
                         </label>
                         <input
                             type="tel"
                             className="w-full p-2 border rounded-md"
                             placeholder="Enter your phone number"
-                            value={bookingData.phoneNumber}
-                            onChange={(e) => setBookingData(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                            value={bookingData.whatsapp}
+                            onChange={(e) => setBookingData(prev => ({ ...prev, whatsapp: e.target.value }))}
                         />
                       </div>
                       <div>
@@ -669,6 +671,18 @@ export default function DoctorDetailPage({params}: { params: { id: string } }) {
                             placeholder="Enter patient name"
                             value={bookingData.patientName}
                             onChange={(e) => setBookingData(prev => ({ ...prev, patientName: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Patient Addree
+                        </label>
+                        <input
+                            type="text"
+                            className="w-full p-2 border rounded-md"
+                            placeholder="Enter patient address"
+                            value={bookingData.patientAddress}
+                            onChange={(e) => setBookingData(prev => ({ ...prev, patientAddress: e.target.value }))}
                         />
                       </div>
                       <div>
@@ -766,7 +780,7 @@ export default function DoctorDetailPage({params}: { params: { id: string } }) {
                       <div className="space-y-3">
                         <button
                             onClick={confirmBooking}
-                            disabled={!bookingData.phoneNumber || !bookingData.patientName || bookingData.selectedTests.length === 0}
+                            disabled={!bookingData.whatsapp || !bookingData.patientName || bookingData.selectedTests.length === 0}
                             className="w-full py-2 px-4 bg-[#ff8a3c] text-white rounded-md hover:bg-[#ff7a2c] disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Book Appointment
@@ -776,10 +790,11 @@ export default function DoctorDetailPage({params}: { params: { id: string } }) {
                               setShowConfirmation(false);
                               setSelectedTimeSlot(null);
                               setBookingData({
-                                phoneNumber: '',
+                                whatsapp: '',
                                 patientName: '',
                                 paymentMethod: null,
-                                selectedTests: []
+                                selectedTests: [],
+                                patientAddress: ''
                               });
                             }}
                             className="w-full py-2 px-4 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50"
@@ -841,7 +856,7 @@ export default function DoctorDetailPage({params}: { params: { id: string } }) {
                         <strong>Date:</strong> {selectedDate && formatDate(selectedDate)}<br />
                         <strong>Time:</strong> {selectedTimeSlot?.start}<br />
                         <strong>Patient:</strong> {bookingData.patientName}<br />
-                        <strong>Phone:</strong> {bookingData.phoneNumber}<br />
+                        <strong>WhatsApp Number:</strong> {bookingData.whatsapp}<br />
                         <strong>Total Charge:</strong> ₹{calculateTotalCharge()}<br />
 
                         <strong className="block mt-2">Selected Tests:</strong>

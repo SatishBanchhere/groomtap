@@ -235,7 +235,7 @@ export default function EmergencyCard({ hospital, user }: EmergencyCardProps) {
                 </div>
             </div>
 
-            <Button onClick={() => setIsBookingOpen(true)}>Book Emergency</Button>
+            <Button onClick={() => setIsBookingOpen(true)} className="bg-red-600 hover:bg-red-700 text-white">Book Emergency</Button>
 
             <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
                 <DialogContent className="max-w-md">
@@ -313,7 +313,7 @@ export default function EmergencyCard({ hospital, user }: EmergencyCardProps) {
                         <Button
                             onClick={handleBookEmergency}
                             disabled={isSubmitting}
-                            className="w-full"
+                            className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isSubmitting ? "Processing..." : "Confirm & Pay"}
                         </Button>

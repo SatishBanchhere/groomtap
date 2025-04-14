@@ -57,6 +57,7 @@ type BookingFormData = {
   phoneNumber: string;
   patientName: string;
   paymentMethod: 'razorpay' | null;
+  patientAddress: string;
 };
 
 type Review = {
@@ -102,7 +103,8 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
   const [bookingData, setBookingData] = useState<BookingFormData>({
     phoneNumber: '',
     patientName: '',
-    paymentMethod: null
+    paymentMethod: null,
+    patientAddress: ''
   });
   const [activeTab, setActiveTab] = useState<'about' | 'services' | 'healthcare' | 'review'>('about');
   const [isOpen, setIsOpen] = useState(false);
@@ -158,7 +160,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
       if (!selectedDate || !doctor?.availability) return;
 
       const dayName = daysOfWeek[selectedDate.getDay()];
-      if (!doctor.availability[dayName]) {
+      if (doctor?.availability && !doctor?.availability[dayName]) {
         setSchedule(null);
         return;
       }
@@ -213,7 +215,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
 
   const confirmBooking = async () => {
     if (!selectedTimeSlot || !selectedDate || !doctor || !user) return;
-    if (!bookingData.phoneNumber || !bookingData.patientName) return;
+    if (!bookingData.phoneNumber || !bookingData.patientName || !bookingData.patientAddress) return;
 
     const userRef = collection(db, 'users');
     const q = query(userRef, where("email", "==", user.email));
@@ -654,6 +656,18 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                             onChange={(e) => setBookingData(prev => ({ ...prev, patientName: e.target.value }))}
                         />
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Address
+                        </label>
+                        <input
+                            type="text"
+                            className="w-full p-2 border rounded-md"
+                            placeholder="Enter patient address"
+                            value={bookingData.patientAddress}
+                            onChange={(e) => setBookingData(prev => ({ ...prev, patientAddress: e.target.value }))}
+                        />
+                      </div>
                     </div>
                 )}
 
@@ -677,7 +691,8 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                               setBookingData({
                                 phoneNumber: '',
                                 patientName: '',
-                                paymentMethod: null
+                                paymentMethod: null,
+                                patientAddress: ''
                               });
                             }}
                             className="w-full py-2 px-4 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50"
@@ -783,6 +798,18 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                             onChange={(e) => setBookingData(prev => ({ ...prev, patientName: e.target.value }))}
                         />
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Address
+                        </label>
+                        <input
+                            type="text"
+                            className="w-full p-2 border rounded-md"
+                            placeholder="Enter patient address"
+                            value={bookingData.patientAddress}
+                            onChange={(e) => setBookingData(prev => ({ ...prev, patientAddress: e.target.value }))}
+                        />
+                      </div>
                     </div>
                 )}
 
@@ -806,7 +833,8 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                               setBookingData({
                                 phoneNumber: '',
                                 patientName: '',
-                                paymentMethod: null
+                                paymentMethod: null,
+                                patientAddress: ''
                               });
                             }}
                             className="w-full py-2 px-4 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50"
@@ -868,6 +896,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                         <strong>Date:</strong> {selectedDate && formatDate(selectedDate)}<br />
                         <strong>Time:</strong> {selectedTimeSlot?.start}<br />
                         <strong>Patient:</strong> {bookingData.patientName}<br />
+                        <strong>Patient Address:</strong> {bookingData.patientAddress}<br />
                         <strong>Phone:</strong> {bookingData.phoneNumber}<br />
                         <strong>Fee:</strong> ₹{doctor?.consultationFees}
                       </p>
