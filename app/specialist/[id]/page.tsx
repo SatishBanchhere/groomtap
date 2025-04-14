@@ -129,45 +129,51 @@ export default function SpecialtyDetailPage({ params }: { params: { id: string }
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
             {doctors.map((doctor) => (
-              <Link
-                href={`/doctors/${doctor.id}`}
-                key={doctor.id}
-                className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-200"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="relative h-20 w-20 flex-shrink-0">
-                    <Image
-                      src={doctor.imageUrl || "/placeholder-doctor.jpg"}
-                      alt={`Profile photo of Dr. ${doctor.fullName}`}
-                      fill
-                      className="object-cover rounded-full"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg mb-1">{doctor.fullName}</h3>
-                    <p className="text-gray-600 text-sm mb-2">{doctor.specialty}</p>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="flex items-center">
-                        <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                        <span>{doctor.rating}</span>
+                <Link
+                    href={`/doctors/${doctor.id}`}
+                    key={doctor.id}
+                    className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-200"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="relative h-20 w-20 flex-shrink-0">
+                      <Image
+                          src={doctor.imageUrl || "/placeholder-doctor.jpg"}
+                          alt={doctor.fullName || "Doctor Name"}
+                          fill
+                          className="object-cover rounded-full"
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1">{doctor.fullName}</h3>
+                      <p className="text-gray-600 text-sm mb-2">{doctor.specialty}</p>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center">
+                          <Star className="w-4 h-4 text-yellow-400 mr-1" />
+                          <span>{doctor.rating}</span>
+                        </div>
+
+
+                        <span>•</span>
+                        <div className="flex items-center">
+                          <Clock className="w-4 h-4 mr-1" />
+                          <span>{doctor.experience} years</span>
+                        </div>
                       </div>
-                      <span>•</span>
-                      <div className="flex items-center">
-                        <Clock className="w-4 h-4 mr-1" />
-                        <span>{doctor.experience} years</span>
+                      <div className="mt-2 text-[#ff8a3c] font-medium">
+                        ₹{doctor.consultationFees} Consultation
                       </div>
-                    </div>
-                    <div className="flex items-center text-gray-600 text-sm mt-2">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      <span>{doctor.location?.city}</span>
-                    </div>
-                    <div className="mt-2 text-[#ff8a3c] font-medium">
-                      ₹{doctor.consultationFees} Consultation
+                      {doctor.ayushmanCardAvailable && (
+                          <div className="flex items-center gap-2">
+                                                            <span className="text-green-600 font-medium text-sm">
+                                                              ✅ Ayushman Card Accepted
+                                                            </span>
+                          </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
             ))}
           </div>
         )}
