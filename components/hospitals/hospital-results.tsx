@@ -72,6 +72,7 @@ export default function HospitalResults({ hospitals }: HospitalResultsProps) {
                         phone={hospital.phone}
                         id={hospital.id}
                         distance={hospital.distance}
+                        ayushmanCardAvailable={hospital.ayushmanCardAvailable}
                     />
                 ))}
             </div>
@@ -106,7 +107,8 @@ export function HospitalCard({
                                  specialties = [],
                                  phone,
                                  id,
-                                 distance
+                                 distance,
+                                 ayushmanCardAvailable
                              }: HospitalCardProps) {
     const fullLocation = location ?
         `${location.address || ''}, ${location.city || ''}, ${location.district ? location.district + ', ' : ''}${location.state || ''}${location.pincode ? ' - ' + location.pincode : ''}`
@@ -143,6 +145,8 @@ export function HospitalCard({
                                 </span>
                             </div>
                         )}
+
+
                     </div>
 
                     {/* Content Section */}
@@ -186,7 +190,13 @@ export function HospitalCard({
                                 )}
                             </div>
                         </div>
-
+                        {ayushmanCardAvailable && (
+                            <div className="flex items-center gap-2">
+                                <span className="text-green-600 font-medium text-sm">
+                                  ✅ Ayushman Card Accepted
+                                </span>
+                            </div>
+                        )}
                         {/* Phone Section */}
                         <div className="flex items-center gap-2 mt-3">
                             <Phone size={16} className="text-green-500 flex-shrink-0" />

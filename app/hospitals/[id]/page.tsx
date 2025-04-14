@@ -12,6 +12,7 @@ type Hospital = {
   id: string
   fullName: string
   imageUrl: string
+  ayushmanCardAvailable: boolean
   location: {
     address: string
     city: string
@@ -23,13 +24,14 @@ type Hospital = {
 
 type Doctor = {
   id: string
-  name: string
+  fullName: string
   imageUrl: string
   specialty: string
+  ayushmanCardAvailable: boolean
   hospitalUid: string
   experience: string
   rating: number
-  consultationFee: number
+  consultationFees: number
 }
 
 type Review = {
@@ -213,7 +215,13 @@ export default function HospitalDetailPage({ params }: { params: { id: string } 
               </div>
             </div>
             <p className="text-gray-700 mb-8">{hospital.about}</p>
-
+            {hospital.ayushmanCardAvailable && (
+                <div className="flex items-center gap-2">
+                                                            <span className="text-green-600 font-medium text-sm">
+                                                              ✅ Ayushman Card Accepted
+                                                            </span>
+                </div>
+            )}
             {/* Reviews Section */}
             <div className="mt-8">
               <h2 className="text-2xl font-bold mb-4">Patient Reviews</h2>
@@ -267,7 +275,7 @@ export default function HospitalDetailPage({ params }: { params: { id: string } 
                             {review.userImage ? (
                                 <Image
                                     src={review.userImage}
-                                    alt={review.userName}
+                                    alt={review.userName || ""}
                                     width={40}
                                     height={40}
                                     className="rounded-full"
@@ -324,19 +332,21 @@ export default function HospitalDetailPage({ params }: { params: { id: string } 
                     <div className="relative h-20 w-20 flex-shrink-0">
                       <Image
                           src={doctor.imageUrl || "/placeholder-doctor.jpg"}
-                          alt={doctor.name}
+                          alt={doctor.fullName || "Doctor Name"}
                           fill
                           className="object-cover rounded-full"
                       />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg mb-1">{doctor.name}</h3>
+                      <h3 className="font-semibold text-lg mb-1">{doctor.fullName}</h3>
                       <p className="text-gray-600 text-sm mb-2">{doctor.specialty}</p>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <div className="flex items-center">
                           <Star className="w-4 h-4 text-yellow-400 mr-1" />
                           <span>{doctor.rating}</span>
                         </div>
+
+
                         <span>•</span>
                         <div className="flex items-center">
                           <Clock className="w-4 h-4 mr-1" />
@@ -344,8 +354,15 @@ export default function HospitalDetailPage({ params }: { params: { id: string } 
                         </div>
                       </div>
                       <div className="mt-2 text-[#ff8a3c] font-medium">
-                        ₹{doctor.consultationFee} Consultation
+                        ₹{doctor.consultationFees} Consultation
                       </div>
+                      {doctor.ayushmanCardAvailable && (
+                          <div className="flex items-center gap-2">
+                                                            <span className="text-green-600 font-medium text-sm">
+                                                              ✅ Ayushman Card Accepted
+                                                            </span>
+                          </div>
+                      )}
                     </div>
                   </div>
                 </Link>

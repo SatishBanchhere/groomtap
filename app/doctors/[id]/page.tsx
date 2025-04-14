@@ -39,6 +39,7 @@ type Doctor = {
   consultationFees: string;
   imageUrl: string;
   qualifications: string;
+  ayushmanCardAvailable: boolean;
   about: string;
   location: {
     address: string;
@@ -429,8 +430,18 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                       <div className="text-sm text-gray-500">
                         📞 {doctor.phone}
                       </div>
+
                     </div>
+                    {doctor.ayushmanCardAvailable && (
+                        <div className="flex items-center gap-2 pt-2">
+                              <span className="text-green-600 font-medium text-sm">
+                                ✅ Ayushman Card Accepted
+                              </span>
+                        </div>
+                    )}
+
                   </div>
+
                 </div>
 
                 {/* Tabs - Visible on both mobile and desktop */}
@@ -449,6 +460,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                           {tab}
                         </button>
                     ))}
+
                   </div>
                 </div>
 
