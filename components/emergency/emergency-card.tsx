@@ -57,6 +57,17 @@ export default function EmergencyCard({ hospital, user }: EmergencyCardProps) {
     const [error, setError] = useState("")
     const router = useRouter()
 
+    const now = new Date();
+    const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }); // e.g., "Saturday"
+    const currentTime = now.toTimeString().slice(0, 5); // "HH:MM" format
+
+    const isServiceAvailable = (service) => {
+        if (service.is24x7) return true;
+        if (service.day !== currentDay) return false;
+        return currentTime >= service.startTime && currentTime <= service.endTime;
+    };
+
+
     const handleBookEmergency = async () => {
         try {
             setIsBookingOpen(false)
@@ -291,11 +302,19 @@ export default function EmergencyCard({ hospital, user }: EmergencyCardProps) {
                                 required
                             >
                                 <option value="">-- Select Emergency Service --</option>
-                                {hospital.emergencyServices.map(service => (
-                                    <option key={service.name} value={service.name}>
-                                        {service.name} (₹{service.fees})
-                                    </option>
-                                ))}
+                                {hospital.emergencyServices.map((service) => {
+                                    const available = isServiceAvailable(service);
+                                    return (
+                                        <option
+                                            key={service.name}
+                                            value={available ? service.name : ''}
+                                            disabled={!available}
+                                            style={{ color: available ? 'black' : 'gray' }}
+                                        >
+                                            {service.name} (₹{service.fees}) {available ? '' : ' - Currently not available'}
+                                        </option>
+                                    );
+                                })}
                             </select>
                         </div>
                         <div>
