@@ -26,7 +26,16 @@ export default function HospitalPage() {
     const [userCoords, setUserCoords] = useState<Coordinates | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-
+    const [locationAvailable, setLocationAvailable] = useState(false)
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                () => setLocationAvailable(true),
+                () => setLocationAvailable(false),
+                { timeout: 5000 }
+            )
+        }
+    }, [])
     useEffect(() => {
         const getUserLocation = async () => {
             try {
@@ -164,7 +173,9 @@ export default function HospitalPage() {
                 id: doc.id,
                 ...doc.data()
             })) as Hospital[]
-
+            if(!locationAvailable){
+                setHospitals(hospitalsData)
+            }
             const processedHospitals = await processHospitalsWithDistances(hospitalsData)
 
             // Filter hospitals to only show those within 15km (15000 meters)
@@ -213,7 +224,11 @@ export default function HospitalPage() {
                             <p>{error}</p>
                         </div>
                     )}
-
+                    {!locationAvailable && (
+                        <div className="bg-blue-100 text-blue-800 p-3 mb-4 rounded">
+                            <p>⚠️ Location not available - showing all hospitals</p>
+                        </div>
+                    )}
                     <AnimatedSection animation="slideUp" delay={0.2}>
                         <HospitalSearch/>
                     </AnimatedSection>

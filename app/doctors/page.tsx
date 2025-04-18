@@ -50,8 +50,17 @@ export default function DoctorSearchPage() {
     const [userCoords, setUserCoords] = useState<Coordinates | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [locationAvailable, setLocationAvailable] = useState(false)
     const searchTerm = searchParams.get('q') || ''
-
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                () => setLocationAvailable(true),
+                () => setLocationAvailable(false),
+                { timeout: 5000 }
+            )
+        }
+    }, [])
     useEffect(() => {
         const getUserLocation = async () => {
             try {
@@ -221,9 +230,17 @@ export default function DoctorSearchPage() {
                     location: data.location
                 })
             })
-
-            const processedDoctors = await processDoctorsWithDistances(doctorsData)
-
+            if(!locationAvailable){
+                setDoctors(doctorsData)
+                return;
+            }
+            // const processedDoctors = await processDoctorsWithDistances(doctorsData)
+            const processedDoctors = await (async () => {
+                return locationAvailable
+                    ? await processDoctorsWithDistances(doctorsData)
+                    : doctorsData
+            })()
+            console.log(processedDoctors)
             // Filter doctors to only show those within 100km (100000 meters)
             const nearbyDoctors = processedDoctors.filter(doctor =>
                 doctor.distanceValue !== undefined && doctor.distanceValue <= 100000
@@ -297,7 +314,11 @@ export default function DoctorSearchPage() {
                     <p>{error}</p>
                 </div>
             )}
-
+            {!locationAvailable && (
+                <div className="bg-blue-100 text-blue-800 p-3 mb-4 rounded">
+                    <p>⚠️ Location not available - showing all doctors</p>
+                </div>
+            )}
             {loading ? (
                 <div className="flex justify-center items-center h-64">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>

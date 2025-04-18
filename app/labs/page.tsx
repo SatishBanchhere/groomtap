@@ -26,7 +26,16 @@ export default function LabPage() {
     const [userCoords, setUserCoords] = useState<Coordinates | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-
+    const [locationAvailable, setLocationAvailable] = useState(false)
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                () => setLocationAvailable(true),
+                () => setLocationAvailable(false),
+                { timeout: 5000 }
+            )
+        }
+    }, [])
     useEffect(() => {
         const getUserLocation = async () => {
             try {
@@ -156,7 +165,9 @@ export default function LabPage() {
                 id: doc.id,
                 ...doc.data()
             })) as Lab[]
-
+            if(!locationAvailable){
+                setLabs(labsData)
+            }
             const processedLabs = await processLabsWithDistances(labsData)
 
             // Filter labs to only show those within 7km (7000 meters)
@@ -191,6 +202,12 @@ export default function LabPage() {
                     {error && (
                         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded">
                             <p>{error}</p>
+                        </div>
+                    )}
+
+                    {!locationAvailable && (
+                        <div className="bg-blue-100 text-blue-800 p-3 mb-4 rounded">
+                            <p>⚠️ Location not available - showing all lab</p>
                         </div>
                     )}
 
