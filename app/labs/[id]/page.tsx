@@ -220,7 +220,7 @@ export default function DoctorDetailPage({params}: { params: { id: string } }) {
     const lebRef = collection(db, `labs/${id}/schedules`);
     const q = query(lebRef, where("day", "==", dayName));
     const labQuerySnapshot = await getDocs(q);
-
+    return;
     if(labQuerySnapshot.empty){
       setError(`Lab is not available on ${ dayName }`);
     }

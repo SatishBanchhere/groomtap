@@ -194,7 +194,8 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
     const dayOfWeek = selected.getDay();
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const dayName = dayNames[dayOfWeek];
-
+    console.log(doctor)
+      console.log(doctor.availability)
       console.log(doctor.availability[dayName])
     if(!doctor.availability[dayName]) {
       setError(`Doctor is not available on ${dayName}`);
