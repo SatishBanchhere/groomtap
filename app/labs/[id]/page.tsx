@@ -179,6 +179,12 @@ export default function DoctorDetailPage({params}: { params: { id: string } }) {
           id: querySnapshot.docs[0].id,
           ...scheduleData
         } as Schedule);
+
+        setError("")
+      }
+      else{
+        setError(`Lab has no schedule on this day`);
+        setSchedule(null)
       }
     };
 
