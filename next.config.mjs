@@ -43,6 +43,11 @@ let nextConfig = {
         destination: '/tool',
         permanent: true,
       },
+      {
+        source: '/patientlogin',
+        destination: '/',
+        permanent: true,
+      },
     ];
   },
 };
