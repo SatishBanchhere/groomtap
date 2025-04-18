@@ -106,7 +106,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
     paymentMethod: null,
     patientAddress: ''
   });
-  const [activeTab, setActiveTab] = useState<'about' | 'services' | 'healthcare' | 'review'>('about');
+  const [activeTab, setActiveTab] = useState<'about' | 'services' | 'review'>('about');
   const [isOpen, setIsOpen] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [averageRating, setAverageRating] = useState(0);
@@ -450,7 +450,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                 {/* Tabs - Visible on both mobile and desktop */}
                 <div className="border-b mb-6">
                   <div className="flex gap-6 overflow-x-auto">
-                    {(['about', 'services', 'healthcare', 'review'] as const).map((tab) => (
+                    {(['about', 'services', 'review'] as const).map((tab) => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
