@@ -40,7 +40,7 @@ export async function GET() {
             snap.forEach(doc => {
                 urls += `
           <url>
-            <loc>https://www.doczappoint.in/${path}/${doc.id}</loc>
+            <loc>https://www.doczappoint.com/${path}/${doc.id}</loc>
             <changefreq>${changefreq}</changefreq>
             <priority>${priority}</priority>
           </url>`;
