@@ -63,7 +63,10 @@ export default function EmergencyCard({ hospital, user }: EmergencyCardProps) {
 
     const isServiceAvailable = (service) => {
         if (service.is24x7) return true;
-        if (service.day !== currentDay) return false;
+        // if (service.day !== currentDay) return false;
+        console.log(currentTime)
+        console.log(service.startTime)
+        console.log(service.endTime)
         return currentTime >= service.startTime && currentTime <= service.endTime;
     };
 

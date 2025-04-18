@@ -27,9 +27,9 @@ type Doctor = {
   fullName: string
   imageUrl: string
   specialty: string
+  experienceInYears: string
   ayushmanCardAvailable: boolean
   hospitalUid: string
-  experience: string
   rating: number
   consultationFees: number
 }
@@ -341,16 +341,16 @@ export default function HospitalDetailPage({ params }: { params: { id: string } 
                       <h3 className="font-semibold text-lg mb-1">{doctor.fullName}</h3>
                       <p className="text-gray-600 text-sm mb-2">{doctor.specialty}</p>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <div className="flex items-center">
-                          <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                          <span>{doctor.rating}</span>
-                        </div>
+                        {/*<div className="flex items-center">*/}
+                        {/*  <Star className="w-4 h-4 text-yellow-400 mr-1" />*/}
+                        {/*  <span>{doctor.rating}</span>*/}
+                        {/*</div>*/}
 
 
-                        <span>•</span>
+                        {/*<span>•</span>*/}
                         <div className="flex items-center">
                           <Clock className="w-4 h-4 mr-1" />
-                          <span>{doctor.experience} years</span>
+                          <span>{doctor.experienceInYears} years of experience</span>
                         </div>
                       </div>
                       <div className="mt-2 text-[#ff8a3c] font-medium">
