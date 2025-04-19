@@ -1,3 +1,4 @@
+// components/emergency/emergency-results.tsx
 'use client'
 
 import { useEffect, useState, useCallback } from "react"
@@ -6,7 +7,7 @@ import { db } from "@/lib/firebase"
 import EmergencyCard from "./emergency-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSearchParams } from "next/navigation"
-import {useAuth} from "@/contexts/auth-context";
+import { useAuth } from "@/contexts/auth-context"
 
 type HospitalWithEmergency = {
     id: string
@@ -38,9 +39,8 @@ interface Coordinates {
     lng: number
 }
 
-export default function EmergencyResults() {
+export default function EmergencyResults({ emergencyType }: { emergencyType: string }) {
     const searchParams = useSearchParams()
-    const emergencyType = searchParams.get('type') || ''
     const location = searchParams.get('location') || ''
     const [hospitals, setHospitals] = useState<HospitalWithEmergency[]>([])
     const [userCoords, setUserCoords] = useState<Coordinates | null>(null)
@@ -77,7 +77,6 @@ export default function EmergencyResults() {
 
     const geocodeHospitalAddress = async (hospital: HospitalWithEmergency): Promise<Coordinates | null> => {
         try {
-            // If hospital already has lat/lng, use that
             if (hospital.location.lat && hospital.location.lng) {
                 return {
                     lat: hospital.location.lat,
@@ -196,7 +195,6 @@ export default function EmergencyResults() {
 
             const processedHospitals = await processHospitalsWithDistances(hospitalsData)
 
-            // Filter hospitals to only show those within 15km (15000 meters)
             const nearbyHospitals = processedHospitals.filter(hospital =>
                 hospital.distanceValue !== undefined && hospital.distanceValue <= 100000
             )
@@ -212,7 +210,6 @@ export default function EmergencyResults() {
                 setHospitals(sortedHospitals)
             }
             else{
-
                 const sortedHospitals = nearbyHospitals.sort((a, b) => {
                     if (a.distanceValue !== undefined && b.distanceValue !== undefined) {
                         return a.distanceValue - b.distanceValue
@@ -238,7 +235,6 @@ export default function EmergencyResults() {
     const filterHospitals = useCallback(() => {
         let results = hospitals
 
-        // Apply emergency type filter if specified
         if (emergencyType) {
             results = results.filter(hospital =>
                 hospital.emergencyServices.some(s =>
@@ -247,7 +243,6 @@ export default function EmergencyResults() {
             )
         }
 
-        // Apply location filter if specified
         if (location) {
             const locationLower = location.toLowerCase()
             results = results.filter(hospital =>
@@ -296,16 +291,13 @@ export default function EmergencyResults() {
 
     return (
         <>
-                <p className="text-sm text-gray-600 mb-4">
-                    {
-                        hospitals.some(d => d.distanceValue && d.distanceValue <= 10000) ?
-                            (`Showing ${hospitals.length} hospitals within 15km of your location`)
-                            :
-                            (`Showing ${hospitals.length} hospitals none within the range`)
-                    }
-                </p>
-                {/*{emergencyType ? ` for "${emergencyType}"` : ''}*/}
-                {/*{location ? ` near "${location}"` : ''}*/}
+            <p className="text-sm text-gray-600 mb-4">
+                {hospitals.some(d => d.distanceValue && d.distanceValue <= 10000) ?
+                    (`Showing ${filteredHospitals.length} hospitals within 15km of your location`) :
+                    (`Showing ${filteredHospitals.length} hospitals`)
+                }
+                {emergencyType ? ` for "${emergencyType}"` : ''}
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredHospitals.map((hospital) => (
                     <EmergencyCard key={hospital.id} hospital={hospital} user={user}/>

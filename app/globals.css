@@ -211,4 +211,3 @@ body {
 .glow-on-hover {
   @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary-500/20;
 }
-
