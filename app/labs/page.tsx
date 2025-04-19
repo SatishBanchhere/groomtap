@@ -39,25 +39,25 @@ export default function LabPage() {
     useEffect(() => {
         const getUserLocation = async () => {
             try {
-                if (!navigator.geolocation) {
-                    throw new Error("Geolocation not supported by your browser")
-                }
-
                 const position = await new Promise<GeolocationPosition>((resolve, reject) => {
                     navigator.geolocation.getCurrentPosition(resolve, reject, {
                         timeout: 10000,
                         maximumAge: 0,
-                        enableHighAccuracy: true
-                    })
-                })
+                        enableHighAccuracy: true,
+                    });
+                });
 
                 setUserCoords({
                     lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                })
+                    lng: position.coords.longitude,
+                });
+
+                setLocationAvailable(true);
             } catch (err) {
-                setError("Location access was denied or unavailable. Distances will not be shown.")
+                // console.error("Geolocation error:", err);
+                setLocationAvailable(false);
             }
+
         }
 
         getUserLocation()
@@ -166,7 +166,9 @@ export default function LabPage() {
                 ...doc.data()
             })) as Lab[]
             if(!locationAvailable){
+                console.log(labsData)
                 setLabs(labsData)
+                return;
             }
             const processedLabs = await processLabsWithDistances(labsData)
 
@@ -184,7 +186,9 @@ export default function LabPage() {
 
             setLabs(sortedLabs)
         } catch (err) {
-            setError("Failed to load lab data. Please try again later.")
+            console.error(err)
+            setLocationAvailable(false);
+            // setError("Failed to load lab data. Please try again later.")
         } finally {
             setLoading(false)
         }
@@ -192,7 +196,7 @@ export default function LabPage() {
 
     useEffect(() => {
         fetchLabs()
-    }, [userCoords, fetchLabs])
+    }, [userCoords, fetchLabs, locationAvailable])
 
     return (
         <AnimatedLayout>
