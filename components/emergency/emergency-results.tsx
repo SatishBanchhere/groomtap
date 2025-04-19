@@ -8,6 +8,8 @@ import EmergencyCard from "./emergency-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSearchParams } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 type HospitalWithEmergency = {
     id: string
@@ -47,6 +49,11 @@ export default function EmergencyResults({ emergencyType }: { emergencyType: str
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const { user } = useAuth()
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(6)
+    const totalPages = Math.ceil(hospitals.length / itemsPerPage)
 
     useEffect(() => {
         const getUserLocation = async () => {
@@ -240,22 +247,36 @@ export default function EmergencyResults({ emergencyType }: { emergencyType: str
                 hospital.emergencyServices.some(s =>
                     s.name.toLowerCase().includes(emergencyType.toLowerCase())
                 )
-            )
+            );
         }
 
         if (location) {
-            const locationLower = location.toLowerCase()
+            const locationLower = location.toLowerCase();
             results = results.filter(hospital =>
                 hospital.location.district?.toLowerCase().includes(locationLower) ||
                 hospital.location.city?.toLowerCase().includes(locationLower) ||
                 hospital.location.state?.toLowerCase().includes(locationLower)
-            )
+            );
         }
 
         return results
     }, [hospitals, emergencyType, location])
 
     const filteredHospitals = filterHospitals()
+
+    // Get current hospitals for pagination
+    const indexOfLastItem = currentPage * itemsPerPage
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage
+    const currentHospitals = filteredHospitals.slice(indexOfFirstItem, indexOfLastItem)
+
+    // Change page
+    const paginate = (pageNumber: number) => setCurrentPage(pageNumber)
+
+    // Handle items per page change
+    const handleItemsPerPageChange = (value: string) => {
+        setItemsPerPage(Number(value))
+        setCurrentPage(1) // Reset to first page when changing items per page
+    }
 
     if (loading) {
         return (
@@ -291,18 +312,97 @@ export default function EmergencyResults({ emergencyType }: { emergencyType: str
 
     return (
         <>
-            <p className="text-sm text-gray-600 mb-4">
-                {hospitals.some(d => d.distanceValue && d.distanceValue <= 10000) ?
-                    (`Showing ${filteredHospitals.length} hospitals within 15km of your location`) :
-                    (`Showing ${filteredHospitals.length} hospitals`)
-                }
-                {emergencyType ? ` for "${emergencyType}"` : ''}
-            </p>
+            <div className="flex justify-between items-center mb-4">
+                <p className="text-sm text-gray-600">
+                    {hospitals.some(d => d.distanceValue && d.distanceValue <= 10000) ?
+                        (`Showing ${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, filteredHospitals.length)} of ${filteredHospitals.length} hospitals within 15km of your location`) :
+                        (`Showing ${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, filteredHospitals.length)} of ${filteredHospitals.length} hospitals`)
+                    }
+                    {emergencyType ? ` for "${emergencyType}"` : ''}
+                </p>
+
+                <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Items per page:</span>
+                    <Select
+                        value={itemsPerPage.toString()}
+                        onValueChange={handleItemsPerPageChange}
+                    >
+                        <SelectTrigger className="w-20 bg-white">
+                            <SelectValue placeholder={itemsPerPage} />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                            <SelectItem value="6">6</SelectItem>
+                            <SelectItem value="12">12</SelectItem>
+                            <SelectItem value="18">18</SelectItem>
+                            <SelectItem value="24">24</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredHospitals.map((hospital) => (
+                {currentHospitals.map((hospital) => (
                     <EmergencyCard key={hospital.id} hospital={hospital} user={user}/>
                 ))}
             </div>
+
+            {/* Pagination controls */}
+            {filteredHospitals.length > itemsPerPage && (
+                <div className="flex justify-center mt-8 space-x-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => paginate(Math.max(1, currentPage - 1))}
+                        disabled={currentPage === 1}
+                    >
+                        Previous
+                    </Button>
+
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        // Show pages around current page
+                        let pageNum
+                        if (totalPages <= 5) {
+                            pageNum = i + 1
+                        } else if (currentPage <= 3) {
+                            pageNum = i + 1
+                        } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i
+                        } else {
+                            pageNum = currentPage - 2 + i
+                        }
+
+                        return (
+                            <Button
+                                key={pageNum}
+                                variant={currentPage === pageNum ? "default" : "outline"}
+                                onClick={() => paginate(pageNum)}
+                            >
+                                {pageNum}
+                            </Button>
+                        )
+                    })}
+
+                    {totalPages > 5 && currentPage < totalPages - 2 && (
+                        <span className="px-3 py-1 flex items-center">...</span>
+                    )}
+
+                    {totalPages > 5 && currentPage < totalPages - 2 && (
+                        <Button
+                            variant="outline"
+                            onClick={() => paginate(totalPages)}
+                        >
+                            {totalPages}
+                        </Button>
+                    )}
+
+                    <Button
+                        variant="outline"
+                        onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+                        disabled={currentPage === totalPages}
+                    >
+                        Next
+                    </Button>
+                </div>
+            )}
         </>
     )
 }

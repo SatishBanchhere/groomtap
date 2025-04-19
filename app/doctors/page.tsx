@@ -1,14 +1,16 @@
+// app/doctors/search/page.tsx
 'use client'
 
-import {useEffect, useState, useCallback} from "react"
-import {useSearchParams} from "next/navigation"
-import Link from "next/link"
-import {ArrowLeft, MapPin, Phone, Mail} from "lucide-react"
-import SearchBar from "@/components/doctors/search-bar"
-import {collection, getDocs, query, where, orderBy} from "firebase/firestore"
-import {db} from "@/lib/firebase"
-import Image from "next/image"
-import Pagination from "@/components/shared/pagination"
+import { useEffect, useState, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowLeft, MapPin, Phone, Mail } from 'lucide-react'
+import Image from 'next/image'
+import { motion } from 'framer-motion'
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 type Doctor = {
     id: string
@@ -34,6 +36,12 @@ type Doctor = {
     }
 }
 
+type Specialty = {
+    id: string
+    name: string
+    imageUrl?: string
+}
+
 interface DoctorWithDistance extends Doctor {
     distance?: string
     distanceValue?: number
@@ -47,11 +55,22 @@ interface Coordinates {
 export default function DoctorSearchPage() {
     const searchParams = useSearchParams()
     const [doctors, setDoctors] = useState<DoctorWithDistance[]>([])
+    const [filteredDoctors, setFilteredDoctors] = useState<DoctorWithDistance[]>([])
     const [userCoords, setUserCoords] = useState<Coordinates | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [locationAvailable, setLocationAvailable] = useState(false)
+    const [specialties, setSpecialties] = useState<Specialty[]>([])
+    const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null)
+    const [searchQuery, setSearchQuery] = useState('')
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(6)
+
     const searchTerm = searchParams.get('q') || ''
+    const specialtyParam = searchParams.get('specialty') || ''
+
     useEffect(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -61,11 +80,12 @@ export default function DoctorSearchPage() {
             )
         }
     }, [])
+
     useEffect(() => {
         const getUserLocation = async () => {
             try {
                 if (!navigator.geolocation) {
-                    throw new Error("Geolocation not supported by your browser")
+                    throw new Error('Geolocation not supported by your browser')
                 }
 
                 const position = await new Promise<GeolocationPosition>((resolve, reject) => {
@@ -82,17 +102,42 @@ export default function DoctorSearchPage() {
                 })
             } catch (err) {
                 console.log(err)
-                setLocationAvailable(false);
-                // setError("Location access was denied or unavailable. Distances will not be shown.")
+                setLocationAvailable(false)
             }
         }
 
         getUserLocation()
     }, [])
 
+    useEffect(() => {
+        const fetchSpecialties = async () => {
+            try {
+                const specialtiesRef = collection(db, 'specialties')
+                const snapshot = await getDocs(specialtiesRef)
+                const specialtiesData = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                })) as Specialty[]
+                setSpecialties(specialtiesData)
+
+                if (specialtyParam) {
+                    const matchedSpecialty = specialtiesData.find(s =>
+                        s.name.toLowerCase() === specialtyParam.toLowerCase()
+                    )
+                    if (matchedSpecialty) {
+                        setSelectedSpecialty(matchedSpecialty.name)
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching specialties:', error)
+            }
+        }
+
+        fetchSpecialties()
+    }, [specialtyParam])
+
     const geocodeDoctorLocation = async (doctor: Doctor): Promise<Coordinates | null> => {
         try {
-            // If doctor already has lat/lng, use that
             if (doctor.location?.lat && doctor.location?.lng) {
                 return {
                     lat: doctor.location.lat,
@@ -162,7 +207,7 @@ export default function DoctorSearchPage() {
 
     const processDoctorsWithDistances = async (doctors: Doctor[]): Promise<DoctorWithDistance[]> => {
         if (!userCoords) {
-            return doctors.map(doctor => ({...doctor}))
+            return doctors.map(doctor => ({ ...doctor }))
         }
 
         const doctorsWithCoordinates = []
@@ -181,14 +226,13 @@ export default function DoctorSearchPage() {
                             distanceValue: distanceResult.value
                         }
                     }
-                    return {...doctor}
+                    return { ...doctor }
                 })
             )
             doctorsWithCoordinates.push(...batchResults)
         }
 
         return doctorsWithCoordinates
-
     }
 
     const fetchDoctors = useCallback(async () => {
@@ -196,20 +240,22 @@ export default function DoctorSearchPage() {
             setLoading(true)
             setError(null)
 
-            const doctorsRef = collection(db, "doctors")
-            let q = query(doctorsRef, where("status", "==", "active"))
+            const doctorsRef = collection(db, 'doctors')
+            let q = query(doctorsRef, where('status', '==', 'active'))
 
-            // Add search filter if search term exists
             if (searchTerm) {
                 q = query(
                     q,
-                    where("fullName", ">=", searchTerm),
-                    where("fullName", "<=", searchTerm + '\uf8ff')
+                    where('fullName', '>=', searchTerm),
+                    where('fullName', '<=', searchTerm + '\uf8ff')
                 )
             }
 
-            // Add sorting by creation date (newest first)
-            q = query(q, orderBy("createdAt", "desc"))
+            if (selectedSpecialty) {
+                q = query(q, where('specialty', '==', selectedSpecialty))
+            }
+
+            q = query(q, orderBy('createdAt', 'desc'))
 
             const querySnapshot = await getDocs(q)
             const doctorsData: Doctor[] = []
@@ -232,18 +278,14 @@ export default function DoctorSearchPage() {
                     location: data.location
                 })
             })
-            if(!locationAvailable){
+
+            if (!locationAvailable) {
                 setDoctors(doctorsData)
-                return;
+                setFilteredDoctors(doctorsData)
+                return
             }
-            // const processedDoctors = await processDoctorsWithDistances(doctorsData)
-            const processedDoctors = await (async () => {
-                return locationAvailable
-                    ? await processDoctorsWithDistances(doctorsData)
-                    : doctorsData
-            })()
-            console.log(processedDoctors)
-            // Filter doctors to only show those within 100km (100000 meters)
+
+            const processedDoctors = await processDoctorsWithDistances(doctorsData)
             const nearbyDoctors = processedDoctors.filter(doctor =>
                 doctor.distanceValue !== undefined && doctor.distanceValue <= 100000
             )
@@ -255,8 +297,8 @@ export default function DoctorSearchPage() {
                     }
                     return 0
                 })
-
                 setDoctors(sortedDoctors)
+                setFilteredDoctors(sortedDoctors)
             } else {
                 const sortedDoctors = processedDoctors.sort((a, b) => {
                     if (a.distanceValue !== undefined && b.distanceValue !== undefined) {
@@ -264,21 +306,28 @@ export default function DoctorSearchPage() {
                     }
                     return 0
                 })
-                console.log(sortedDoctors)
                 setDoctors(sortedDoctors)
+                setFilteredDoctors(sortedDoctors)
             }
-
         } catch (err) {
-            console.error("Error fetching doctors:", err)
-            setError("Failed to load doctors. Please try again later.")
+            console.error('Error fetching doctors:', err)
+            setError('Failed to load doctors. Please try again later.')
         } finally {
             setLoading(false)
         }
-    }, [searchTerm, userCoords])
+    }, [searchTerm, userCoords, selectedSpecialty, locationAvailable])
 
     useEffect(() => {
         fetchDoctors()
     }, [fetchDoctors])
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault()
+        const params = new URLSearchParams()
+        if (searchQuery) params.set('q', searchQuery)
+        if (selectedSpecialty) params.set('specialty', selectedSpecialty)
+        window.location.href = `/doctors?${params.toString()}`
+    }
 
     const getFullLocation = (doctor: Doctor) => {
         if (!doctor.location) return null
@@ -292,6 +341,12 @@ export default function DoctorSearchPage() {
         return addressParts.join(', ')
     }
 
+    // Pagination calculations
+    const indexOfLastItem = currentPage * itemsPerPage
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage
+    const currentDoctors = filteredDoctors.slice(indexOfFirstItem, indexOfLastItem)
+    const totalPages = Math.ceil(filteredDoctors.length / itemsPerPage)
+
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="flex items-center gap-4 mb-8">
@@ -301,14 +356,94 @@ export default function DoctorSearchPage() {
                 </Link>
             </div>
 
+            {/* Search Bar */}
             <div className="mb-8">
-                <SearchBar
-                    type="doctors"
-                    showFilters
-                    placeholder={searchTerm || "Search doctors by name or specialty..."}
-                    //@ts-ignore
-                    defaultValue={searchTerm}
-                />
+                <form onSubmit={handleSearch} className="flex gap-4">
+                    <div className="relative flex-1">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search doctors by name or specialty..."
+                            className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <button
+                        type="submit"
+                        className="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                    >
+                        Search
+                    </button>
+                </form>
+            </div>
+
+            {/* Specialty Slider */}
+            <div className="mb-8">
+                <div className="w-full overflow-x-auto py-4">
+                    <div
+                        onClick={()=>{
+                            setSelectedSpecialty(null)
+                        }}
+                        className="flex space-x-4 px-4">
+                        <Link
+                            href={`/doctors`}
+                            className={`flex flex-col items-center justify-center px-4 py-2 rounded-lg min-w-fit ${
+                                !selectedSpecialty
+                                    ? 'bg-blue-100 border border-blue-500'
+                                    : 'bg-gray-100 hover:bg-gray-200'
+                            } transition-colors`}
+                        >
+                            <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center mb-2">
+                                <span className="text-lg">👨‍⚕️</span>
+                            </div>
+
+                            <span className="text-sm font-medium">All</span>
+                        </Link>
+
+                        {specialties.map((specialty) => (
+                            <motion.div
+                                key={specialty.id}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                            >
+                                <Link
+                                    href={`/doctors?q=${searchTerm}&specialty=${encodeURIComponent(
+                                        specialty.name
+                                    )}`}
+                                    className={`flex flex-col items-center justify-center px-4 py-2 rounded-lg min-w-fit ${
+                                        selectedSpecialty === specialty.name
+                                            ? 'bg-blue-100 border border-blue-500'
+                                            : 'bg-gray-100 hover:bg-gray-200'
+                                    } transition-colors`}
+                                >
+                                    {specialty.imageUrl ? (
+                                        <div className="w-12 h-12 rounded-full overflow-hidden mb-2">
+                                            <Image
+                                                src={specialty.imageUrl}
+                                                alt={specialty.name}
+                                                width={48}
+                                                height={48}
+                                                className="object-cover"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center mb-2">
+                                            <span className="text-lg">🏥</span>
+                                        </div>
+                                    )}
+                                    <span className="text-sm font-medium text-center">
+                    {specialty.name}
+                  </span>
+                                </Link>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
             </div>
 
             {error && (
@@ -316,11 +451,13 @@ export default function DoctorSearchPage() {
                     <p>{error}</p>
                 </div>
             )}
+
             {!locationAvailable && (
                 <div className="bg-blue-100 text-blue-800 p-3 mb-4 rounded">
                     <p>⚠️ Location not available - showing all doctors</p>
                 </div>
             )}
+
             {loading ? (
                 <div className="flex justify-center items-center h-64">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
@@ -331,30 +468,32 @@ export default function DoctorSearchPage() {
             ) : (
                 <>
                     <div className="mb-4">
-                        {doctors.length > 0 && (
+                        {filteredDoctors.length > 0 && (
                             <p className="text-sm text-gray-600">
                                 {userCoords ? (
                                     <>
-                                        Showing {doctors.length} doctors
-                                        {doctors.some(d => d.distanceValue && d.distanceValue <= 10000)
+                                        Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredDoctors.length)} of {filteredDoctors.length} doctors
+                                        {filteredDoctors.some(d => d.distanceValue && d.distanceValue <= 10000)
                                             ? ' within 10km of your location'
                                             : ' (none within 100km, showing all doctors)'}
                                         {searchTerm ? ` matching "${searchTerm}"` : ''}
+                                        {selectedSpecialty ? ` in ${selectedSpecialty}` : ''}
                                     </>
                                 ) : (
                                     <>
-                                        Showing {doctors.length} doctors
+                                        Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredDoctors.length)} of {filteredDoctors.length} doctors
                                         {searchTerm ? ` matching "${searchTerm}"` : ''}
+                                        {selectedSpecialty ? ` in ${selectedSpecialty}` : ''}
                                     </>
                                 )}
                             </p>
                         )}
                     </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {doctors.length > 0 ? (
-                            doctors.map((doctor) => (
-                                <div key={doctor.id}
-                                     className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                        {currentDoctors.length > 0 ? (
+                            currentDoctors.map((doctor) => (
+                                <div key={doctor.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                                     <div className="p-6">
                                         <div className="flex items-center space-x-4">
                                             <div className="flex-shrink-0">
@@ -367,8 +506,7 @@ export default function DoctorSearchPage() {
                                                         className="rounded-full object-cover"
                                                     />
                                                 ) : (
-                                                    <div
-                                                        className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                                                    <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
                                                         {doctor.fullName.charAt(0)}
                                                     </div>
                                                 )}
@@ -384,8 +522,7 @@ export default function DoctorSearchPage() {
                                                 {doctor.distance && (
                                                     <div className="flex items-center mt-1">
                                                         <MapPin className="w-4 h-4 text-blue-500 mr-1"/>
-                                                        <span
-                                                            className="text-xs text-blue-600">{doctor.distance} away</span>
+                                                        <span className="text-xs text-blue-600">{doctor.distance} away</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -434,12 +571,11 @@ export default function DoctorSearchPage() {
 
                                                     {doctor.ayushmanCardAvailable && (
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-green-600 font-medium text-sm">
-                                                              ✅ Ayushman Card Accepted
-                                                            </span>
+                              <span className="text-green-600 font-medium text-sm">
+                                ✅ Ayushman Card Accepted
+                              </span>
                                                         </div>
                                                     )}
-
                                                 </div>
                                             )}
 
@@ -466,16 +602,90 @@ export default function DoctorSearchPage() {
                         ) : (
                             <div className="col-span-full text-center py-12">
                                 <p className="text-gray-500 text-lg">
-                                    No doctors found within 100km {searchTerm ? `matching "${searchTerm}"` : ''}
+                                    No doctors found {searchTerm ? `matching "${searchTerm}"` : ''}
+                                    {selectedSpecialty ? ` in ${selectedSpecialty}` : ''}
                                 </p>
-
                             </div>
                         )}
                     </div>
 
-                    {doctors.length > 0 && (
-                        <div className="mt-8">
-                            <Pagination totalItems={doctors.length}/>
+                    {/* Pagination */}
+                    {filteredDoctors.length > itemsPerPage && (
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mt-8">
+                            <div className="flex items-center space-x-2">
+                                <span className="text-sm text-gray-600">Items per page:</span>
+                                <Select
+                                    value={itemsPerPage.toString()}
+                                    onValueChange={(value) => {
+                                        setItemsPerPage(Number(value))
+                                        setCurrentPage(1)
+                                    }}
+                                >
+                                    <SelectTrigger className="w-20 bg-white border border-gray-200">
+                                        <SelectValue placeholder={itemsPerPage} />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white border border-gray-200">
+                                        <SelectItem value="6">6</SelectItem>
+                                        <SelectItem value="12">12</SelectItem>
+                                        <SelectItem value="18">18</SelectItem>
+                                        <SelectItem value="24">24</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="flex space-x-2">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                    disabled={currentPage === 1}
+                                >
+                                    Previous
+                                </Button>
+
+                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                    let pageNum
+                                    if (totalPages <= 5) {
+                                        pageNum = i + 1
+                                    } else if (currentPage <= 3) {
+                                        pageNum = i + 1
+                                    } else if (currentPage >= totalPages - 2) {
+                                        pageNum = totalPages - 4 + i
+                                    } else {
+                                        pageNum = currentPage - 2 + i
+                                    }
+
+                                    return (
+                                        <Button
+                                            key={pageNum}
+                                            variant={currentPage === pageNum ? "default" : "outline"}
+                                            onClick={() => setCurrentPage(pageNum)}
+                                        >
+                                            {pageNum}
+                                        </Button>
+                                    )
+                                })}
+
+                                {totalPages > 5 && currentPage < totalPages - 2 && (
+                                    <span className="px-3 py-1 flex items-center">...</span>
+                                )}
+
+                                {totalPages > 5 && currentPage < totalPages - 2 && (
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setCurrentPage(totalPages)}
+                                    >
+                                        {totalPages}
+                                    </Button>
+                                )}
+
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    Next
+                                </Button>
+                            </div>
                         </div>
                     )}
                 </>
