@@ -186,7 +186,7 @@ export default function LabPage() {
 
             setLabs(sortedLabs)
         } catch (err) {
-            console.error(err)
+            console.log(err)
             setLocationAvailable(false);
             // setError("Failed to load lab data. Please try again later.")
         } finally {

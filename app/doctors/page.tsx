@@ -81,7 +81,7 @@ export default function DoctorSearchPage() {
                     lng: position.coords.longitude
                 })
             } catch (err) {
-                console.error(err)
+                console.log(err)
                 setLocationAvailable(false);
                 // setError("Location access was denied or unavailable. Distances will not be shown.")
             }
