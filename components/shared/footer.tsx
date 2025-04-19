@@ -70,7 +70,7 @@ export default function Footer() {
               />
               <div
                   dangerouslySetInnerHTML={{ __html: impData.aboutUs }}
-                  className="text-gray-400 text-sm leading-relaxed">
+                  className="text-white text-sm leading-relaxed">
               </div>
             </div>
 
@@ -79,17 +79,17 @@ export default function Footer() {
               <h3 className="text-lg font-semibold mb-6">About</h3>
               <ul className="space-y-4">
                 <li>
-                  <Link href="/aboutus" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  <Link href="/aboutus" className="block text-white hover:text-white transition-colors text-sm">
                     About Us
                   </Link>
                 </li>
                 <li>
-                  <Link href="/contactus" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  <Link href="/contactus" className="block text-white hover:text-white transition-colors text-sm">
                     Contact Us
                   </Link>
                 </li>
                 <li>
-                  <Link href="/" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  <Link href="/" className="block text-white hover:text-white transition-colors text-sm">
                     Download apps
                   </Link>
                 </li>
@@ -106,22 +106,22 @@ export default function Footer() {
               <h3 className="text-lg font-semibold mb-6">Useful Links</h3>
               <ul className="space-y-4">
                 <li>
-                  <Link href="/specialist" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  <Link href="/specialist" className="block text-white hover:text-white transition-colors text-sm">
                     Specialist
                   </Link>
                 </li>
                 <li>
-                  <Link href="/doctors" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  <Link href="/doctors" className="block text-white hover:text-white transition-colors text-sm">
                     Doctors
                   </Link>
                 </li>
                 <li>
-                  <Link href="/tool" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  <Link href="/tool" className="block text-white hover:text-white transition-colors text-sm">
                     Join As Hospital
                   </Link>
                 </li>
                 <li>
-                  <Link href="/tool" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  <Link href="/tool" className="block text-white hover:text-white transition-colors text-sm">
                     Join As Lab
                   </Link>
                 </li>
@@ -132,7 +132,7 @@ export default function Footer() {
             <div>
               <h3 className="text-lg font-semibold mb-6">Contact Info</h3>
               <ul className="space-y-4">
-                <li className="flex items-center gap-3 text-gray-400 text-sm">
+                <li className="flex items-center gap-3 text-white text-sm">
                   <MapPin className="text-primary-500" size={20} />
                   <span
                     dangerouslySetInnerHTML={{__html: impData.address}}
@@ -141,7 +141,7 @@ export default function Footer() {
                 <li>
                   <a
                       href={`tel:${impData.phoneNumber.replace(/<\/?p>/g, "")}`}
-                      className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors text-sm"
+                      className="flex items-center gap-3 text-white hover:text-white transition-colors text-sm"
                   >
                     <Phone className="text-primary-500" size={20} />
                     <span
@@ -152,7 +152,7 @@ export default function Footer() {
                 <li>
                   <a
                       href={`mailto:${impData.email.replace(/<\/?p>/g, "")}`}
-                      className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors text-sm"
+                      className="flex items-center gap-3 text-white hover:text-white transition-colors text-sm"
                   >
                     <Mail className="text-primary-500" size={20}/>
                     <span
@@ -166,7 +166,7 @@ export default function Footer() {
 
           {/* Copyright */}
           <div className="mt-16 pt-8 border-t border-gray-800">
-            <p className="text-center text-gray-400 text-sm">
+            <p className="text-center text-white text-sm">
               Appointment Book System © 2025 All Right Reserved
             </p>
           </div>
