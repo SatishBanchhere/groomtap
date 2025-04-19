@@ -243,7 +243,7 @@ export default function EmergencyCard({ hospital, user }: EmergencyCardProps) {
                             <span>
                                 {service.is24x7 ? "24x7" : `${service.startTime} - ${service.endTime}`}
                             </span>
-                            <span className="font-medium">₹{service.fees}</span>
+                            {/*<span className="font-medium">₹{service.fees}</span>*/}
                         </div>
                     ))}
                 </div>
