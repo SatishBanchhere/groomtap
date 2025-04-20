@@ -30,7 +30,7 @@ type Hospital = {
         lat?: number
         lng?: number
     }
-}``
+}
 
 type Service = {
     id: string
