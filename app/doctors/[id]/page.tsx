@@ -621,11 +621,27 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                         <option value="">Select time slot</option>
                         {schedule.timeSlots
                             .filter(slot => !slot.booked)
-                            .map((slot, index) => (
-                                <option key={index} value={slot.start}>
-                                  {slot.start}
-                                </option>
-                            ))
+                            .map((slot, index) => {
+                              const [hours, minutes] = slot.start.split(':'); // Split "HH:mm"
+                              const slotTime = new Date();
+                              slotTime.setHours(hours, minutes, 0, 0); // Set the slot time in today's date
+
+                              const currentTime = Date.now(); // Get the current time
+                              const isSlotToday = new Date(selectedDate).toDateString() === new Date().toDateString(); // Check if the selected date is today
+
+                              // If the selected date is today, disable past slots
+                              const isSlotPassed = isSlotToday && currentTime > slotTime.getTime();
+
+                              return (
+                                  <option
+                                      key={index}
+                                      value={slot.start}
+                                      disabled={isSlotPassed} // Disable if the time has passed or if selected date is today
+                                  >
+                                    {slot.start} {isSlotPassed && "This time slot has passed."}
+                                  </option>
+                              );
+                            })
                         }
                       </select>
                     </div>
