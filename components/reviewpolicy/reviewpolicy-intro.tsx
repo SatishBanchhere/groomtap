@@ -12,7 +12,7 @@ const initialData = {
   aboutUs: ""
 }
 
-export default function PolicypolicyIntro() {
+export default function ReviewpolicyIntro() {
   const [impData, setImpData] = useState<data>(initialData);
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import PageHeader from "@/components/shared/page-header"
-import ReviewIntro from "@/components/reviewpolicy/policypolicy-intro"
+import ReviewIntro from "@/components/reviewpolicy/reviewpolicy-intro"
 import AppointmentProcess from "@/components/shared/appointment-process"
 import Faq from "@/components/reviewpolicy/faq"
 import EmergencyNewsletter from "@/components/shared/emergency-newsletter"
