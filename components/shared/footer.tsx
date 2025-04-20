@@ -103,6 +103,16 @@ export default function Footer() {
                     Review Policy
                   </Link>
                 </li>
+                <li>
+                  <Link href="/termsandconditions" className="block text-white hover:text-white transition-colors text-sm">
+                    Terms & Condition
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/helpcenter" className="block text-white hover:text-white transition-colors text-sm">
+                    Help Center
+                  </Link>
+                </li>
               </ul>
             </div>
 
