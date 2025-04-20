@@ -3,7 +3,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import { deleteUser, signOut } from "firebase/auth"
-import { doc, deleteDoc, collection, query, where, getDocs, writeBatch } from "firebase/firestore"
+import { doc, deleteDoc, collection, query, where, getDocs, writeBatch, getDoc } from "firebase/firestore"
 import { useAuthState } from "react-firebase-hooks/auth"
 import Image from "next/image"
 import AccountDeletionIntro from "@/components/accountdeletion/accountdeletion-intro";
@@ -28,21 +28,14 @@ export default function AccountDeletionPage() {
 
     try {
       // Delete user data from Firestore
-      const userDocRef = doc(db, "users", user.uid)
+      console.log(user.email)
+      const userRef = collection(db, "users")
+      const q = query(userRef, where("email", "==", user.email))
+      const querySnap = await getDocs(q)
+      querySnap.forEach(async (docSnap) => {
+        await deleteDoc(docSnap.ref);
+      });
 
-      // Get all subcollections and delete them
-      const userCollections = await getDocs(collection(db, `users/${user.uid}`))
-      const batch = writeBatch(db)
-
-      userCollections.forEach((doc) => {
-        batch.delete(doc.ref)
-      })
-
-      // Delete the user document itself
-      batch.delete(userDocRef)
-
-      // Execute all deletions
-      await batch.commit()
 
       // Delete user from Authentication
       await deleteUser(user)
