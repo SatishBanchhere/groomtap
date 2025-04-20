@@ -93,11 +93,11 @@ export default function Footer() {
                     Download apps
                   </Link>
                 </li>
-                {/*<li>*/}
-                {/*  <Link href="/privacy" className="block text-gray-400 hover:text-white transition-colors text-sm">*/}
-                {/*    Privacy Policy*/}
-                {/*  </Link>*/}
-                {/*</li>*/}
+                <li>
+                  <Link href="/privacypolicy" className="block text-white hover:text-white transition-colors text-sm">
+                    Privacy Policy
+                  </Link>
+                </li>
               </ul>
             </div>
 
