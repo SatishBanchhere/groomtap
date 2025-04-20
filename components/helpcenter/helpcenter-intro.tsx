@@ -47,7 +47,10 @@ export default function HelpcenterIntro() {
             {/*  our advanced telemedicine platform, connecting patients with licensed professionals remotely. Our*/}
             {/*  innovative approach ensures healthcare is more accessible, convenient, and patient-centric.*/}
             {/*</p>*/}
-            <div dangerouslySetInnerHTML={{__html: impData.aboutUs}}>
+            <div
+
+                className="privacy-content"
+                dangerouslySetInnerHTML={{__html: impData.aboutUs}}>
 
             </div>
           </div>

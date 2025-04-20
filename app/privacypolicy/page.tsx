@@ -6,7 +6,7 @@ import EmergencyNewsletter from "@/components/shared/emergency-newsletter"
 import AnimatedLayout from "@/components/shared/animated-layout"
 import AnimatedSection from "@/components/shared/animated-section"
 
-export default function AboutUsPage() {
+export default function PrivacyPolicyPage() {
   return (
     <AnimatedLayout>
       <PageHeader title="Privacy Policy" breadcrumb={["Home", "Privacy Policy"]} />

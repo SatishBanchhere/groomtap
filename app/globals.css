@@ -211,3 +211,24 @@ body {
 .glow-on-hover {
   @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary-500/20;
 }
+.privacy-content h1 {
+  font-size: 1.5rem; /* 24px */
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.privacy-content h2 {
+  font-size: 1.25rem; /* 20px */
+  font-weight: bold;
+  margin-bottom: 0.75rem;
+}
+
+.privacy-content h3 {
+  font-size: 1.125rem; /* 18px */
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.privacy-content p {
+  margin-bottom: 1rem;
+}
