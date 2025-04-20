@@ -26,7 +26,7 @@ export default function ReviewpolicyIntro() {
       aboutUs: "",
     }
     for(const doc of webContentSnapshot.docs) {
-      if(doc.id === "privacy"){
+      if(doc.id === "review"){
         tempData.aboutUs = doc.data().content
       }
     }
