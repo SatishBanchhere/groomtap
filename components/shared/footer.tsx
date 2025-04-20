@@ -113,6 +113,11 @@ export default function Footer() {
                     Help Center
                   </Link>
                 </li>
+                <li>
+                  <Link href="/accountdeletion" className="block text-white hover:text-white transition-colors text-sm">
+                    Account Delete
+                  </Link>
+                </li>
               </ul>
             </div>
 
