@@ -98,6 +98,11 @@ export default function Footer() {
                     Privacy Policy
                   </Link>
                 </li>
+                <li>
+                  <Link href="/reviewpolicy" className="block text-white hover:text-white transition-colors text-sm">
+                    Review Policy
+                  </Link>
+                </li>
               </ul>
             </div>
 
