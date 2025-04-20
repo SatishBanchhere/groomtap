@@ -7,8 +7,12 @@ import { doc, deleteDoc, collection, query, where, getDocs, writeBatch, getDoc }
 import { useAuthState } from "react-firebase-hooks/auth"
 import Image from "next/image"
 import AccountDeletionIntro from "@/components/accountdeletion/accountdeletion-intro";
+import {motion} from "framer-motion";
+import {useAuth} from "@/contexts/auth-context";
+import PageHeader from "@/components/shared/page-header";
 
 export default function AccountDeletionPage() {
+  const { signInWithGoogle } = useAuth();
   const [user, loading] = useAuthState(auth)
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState("")
@@ -59,26 +63,37 @@ export default function AccountDeletionPage() {
 
   if (!user) {
     return (
-        <div className="container mx-auto px-4 py-12">
-          <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold mb-4">Account Deletion</h2>
-            <p>You need to be signed in to delete your account.</p>
-            <button
-                onClick={() => router.push("/login")}
-                className="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition"
-            >
-              Sign In
-            </button>
+        <div className="min-h-screen bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center px-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-10 max-w-lg w-full text-center space-y-6">
+            <h2 className="text-4xl font-extrabold text-gray-800">Delete Account</h2>
+            <p className="text-lg text-gray-600">
+              You must be signed in to delete your account.
+            </p>
+            <div className="flex justify-center">
+              <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={signInWithGoogle}
+                  className="flex items-center gap-3 bg-white border-2 border-blue-500 rounded-full px-6 py-3 text-lg font-semibold text-blue-600 hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-lg"
+              >
+                <img
+                    src="https://www.google.com/favicon.ico"
+                    alt="Google"
+                    className="w-5 h-5"
+                />
+                <span>Sign In with Google</span>
+              </motion.button>
+            </div>
           </div>
         </div>
-    )
+    );
   }
-
   return (
       <section className="py-12">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-1 gap-8 items-center">
             <div className="space-y-4">
+              <PageHeader title="Delete Account" breadcrumb={["Home", "Delete Account"]} />
               {/*<span className="text-[#ff8a3c] font-medium">Account Delete</span>*/}
               {/*<h2 className="text-3xl md:text-4xl font-bold">We bring care to your home with one click — while keeping your data private and secure.</h2>*/}
               <AccountDeletionIntro/>
