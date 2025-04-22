@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+import Head from "next/head";
 
 export default function SearchLayout({
                                          children,
