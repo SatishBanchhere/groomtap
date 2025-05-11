@@ -59,3 +59,22 @@ export type LabAppointment = {
     };
     timeSlot: string;
 }
+
+export type Test = {
+    name: string;
+    serviceType: string;
+    charge?: string;
+    homeCharge?: string;
+    visitCharge?: string;
+};
+
+
+export type Review = {
+    id: string;
+    userId: string;
+    userName: string;
+    userImage?: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+};

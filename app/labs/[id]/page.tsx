@@ -419,7 +419,19 @@ export default function DoctorDetailPage({params}: { params: { id: string } }) {
   }
 
   return (
-      <div className="bg-[#f8f5ef] min-h-screen">
+      <>
+        {lab && (
+            <>
+              <LabSEOTags lab={lab} tests={tests || []} />
+              <LabStructuredData
+                  lab={lab}
+                  reviews={reviews}
+                  averageRating={averageRating}
+                  tests={tests || []}
+              />
+            </>
+        )}
+        <div className="bg-[#f8f5ef] min-h-screen">
         <PageHeader title="Lab Details" breadcrumb={["Home", "Lab Details"]} />
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -905,5 +917,6 @@ export default function DoctorDetailPage({params}: { params: { id: string } }) {
           </Dialog>
         </Transition>
       </div>
+      </>
   );
 }
