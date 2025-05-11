@@ -8,15 +8,15 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyB6-KKOufnA9n-I9fL5MVbMUz7GD4Sq8tM",
-  authDomain: "doctor-app-data-c0eb7.firebaseapp.com",
-  projectId: "doctor-app-data-c0eb7",
-  storageBucket: "doctor-app-data-c0eb7.firebasestorage.app",
-  messagingSenderId: "228452345569",
-  appId: "1:228452345569:web:49d03e9b2f810b6e8639a0",
-  measurementId: "G-50NWHPL2V4"
+  apiKey: "AIzaSyCUxC-5Q4SoFd27-K1pV6K_b0-95Xk4Sfc",
+  authDomain: "doczappoint.firebaseapp.com",
+  databaseURL: "https://doczappoint-default-rtdb.firebaseio.com",
+  projectId: "doczappoint",
+  storageBucket: "doczappoint.firebasestorage.app",
+  messagingSenderId: "499780804318",
+  appId: "1:499780804318:web:d5133138f9831b1cc0ac4f",
+  measurementId: "G-63KJP30E1H"
 };
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
