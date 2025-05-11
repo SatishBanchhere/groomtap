@@ -10,6 +10,9 @@ import { Share2, Heart, Star, ChevronDown, ChevronUp } from 'lucide-react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import PageHeader from '@/components/shared/page-header';
+import { Metadata } from 'next';
+import {DoctorSEOTags, DoctorStructuredData} from "@/components/seo/DoctorSEOTags";
+
 
 type TimeSlot = {
   start: string;
@@ -32,7 +35,7 @@ type Schedule = {
   timeSlots: TimeSlot[];
 };
 
-type Doctor = {
+export type Doctor = {
   id: string;
   fullName: string;
   specialty: string;
@@ -90,6 +93,50 @@ function formatDateForFirebase(date: Date) {
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  // Fetch doctor data (you might need to adjust this based on your data fetching)
+  const doctor = await getDoctorById(params.id);
+
+  return {
+    title: `Dr. ${doctor.fullName} - ${doctor.specialty} | DocZappoint`,
+    description: `Book appointments with Dr. ${doctor.fullName}, ${doctor.specialty} in ${doctor.location.city}. ${doctor.about || ''}`,
+    keywords: [
+      `Dr. ${doctor.fullName}`,
+      `${doctor.specialty} in ${doctor.location.city}`,
+      `${doctor.fullName} appointment`,
+      `Book ${doctor.specialty} online`,
+      `Doctor in ${doctor.location.city}`,
+      doctor.qualifications,
+    ],
+    openGraph: {
+      title: `Dr. ${doctor.fullName} - ${doctor.specialty}`,
+      description: `Book appointments with Dr. ${doctor.fullName}, ${doctor.specialty} in ${doctor.location.city}`,
+      url: `https://yourwebsite.com/doctors/${params.id}`,
+      type: 'profile',
+      profile: {
+        firstName: doctor.fullName.split(' ')[0],
+        lastName: doctor.fullName.split(' ').slice(1).join(' '),
+        username: doctor.fullName.replace(/\s+/g, '-').toLowerCase(),
+      },
+      images: doctor.imageUrl ? [
+        {
+          url: doctor.imageUrl,
+          width: 300,
+          height: 300,
+          alt: `Dr. ${doctor.fullName}`,
+        }
+      ] : undefined,
+    },
+    twitter: {
+      card: 'summary',
+      title: `Dr. ${doctor.fullName} - ${doctor.specialty}`,
+      description: `Book appointments with Dr. ${doctor.fullName}, ${doctor.specialty} in ${doctor.location.city}`,
+      images: doctor.imageUrl ? [doctor.imageUrl] : undefined,
+    },
+  };
+}
+
 
 export default function DoctorDetailPage({ params }: { params: { id: string } }) {
   const { user, signInWithGoogle } = useAuth();
@@ -369,7 +416,18 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
   }
 
   return (
-      <div className="bg-[#f8f5ef] min-h-screen">
+      <>
+        {doctor && (
+            <>
+              <DoctorSEOTags doctor={doctor} />
+              <DoctorStructuredData
+                  doctor={doctor}
+                  reviews={reviews}
+                  averageRating={averageRating}
+              />
+            </>
+        )}
+        <div className="bg-[#f8f5ef] min-h-screen">
         <PageHeader title="Doctor Details" breadcrumb={["Home", "Doctor Details"]} />
 
         {/* Mobile Booking Panel Toggle - Only shown on mobile */}
@@ -938,5 +996,6 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
           </Dialog>
         </Transition>
       </div>
+      </>
   );
 }
