@@ -75,12 +75,12 @@ export async function GET() {
             const stateData = stateDoc.data();
 
             // URL for the state page
-            urls += `
-      <url>
-        <loc>https://www.doczappoint.com/${slugify(stateName)}</loc>
-        <changefreq>weekly</changefreq>
-        <priority>0.7</priority>
-      </url>`;
+      //       urls += `
+      // <url>
+      //   <loc>https://www.doczappoint.com/${slugify(stateName)}</loc>
+      //   <changefreq>weekly</changefreq>
+      //   <priority>0.7</priority>
+      // </url>`;
 
             // Process each district in the state
             if (stateData.districts && Array.isArray(stateData.districts)) {
@@ -97,7 +97,7 @@ export async function GET() {
                     urls += `
       <url>
         <loc>https://www.doczappoint.com/${slugify(stateName)}/${slugify(districtName)}</loc>
-        <changefreq>daily</changefreq>
+        <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>`;
 
