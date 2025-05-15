@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Metadata } from 'next';
-import { getHospitalById } from '@/lib/hospitals'; // Implement this
+import { getHospitalById, getDoctorsByHospital } from '@/lib/hospitals'; // Implement this
 
 type Props = {
     params: { id: string };
