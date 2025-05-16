@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         openGraph: {
             title: `Dr. ${doctor.fullName} - ${doctor.specialty}`,
             description: `Book appointments with Dr. ${doctor.fullName}, ${doctor.specialty} in ${doctor.location.city}`,
-            url: `https://yourwebsite.com/doctors/${params.id}`,
+            url: `https://doczappoint.com/doctors/${params.id}`,
             type: 'profile',
             // @ts-ignore
             profile: {
