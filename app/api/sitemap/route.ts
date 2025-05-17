@@ -88,7 +88,7 @@ export async function GET() {
             const servicesName = doc.data().name;
             urls += `
               <url>
-                <loc>https://www.doczappoint.com/hospitals?q=&service=${slugify(servicesName)}</loc>
+                <loc>https://www.doczappoint.com/hospitals?q=&amp;service=${slugify(servicesName)}</loc>
                 <changefreq>weekly</changefreq>
                 <priority>0.9</priority>
               </url>`;
