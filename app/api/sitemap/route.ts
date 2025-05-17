@@ -58,13 +58,41 @@ export async function GET() {
             const snap = await getDocs(ref);
             snap.forEach(doc => {
                 urls += `
-      <url>
-        <loc>https://www.doczappoint.com/${path}/${doc.id}</loc>
-        <changefreq>${changefreq}</changefreq>
-        <priority>${priority}</priority>
-      </url>`;
+                  <url>
+                    <loc>https://www.doczappoint.com/${path}/${doc.id}</loc>
+                    <changefreq>${changefreq}</changefreq>
+                    <priority>${priority}</priority>
+                  </url>`;
             });
         }
+
+        const specialtiesRef = collection(db, "specialties");
+        const specialtiesSnap = await getDocs(specialtiesRef);
+
+        // Add doctor specialty routes
+        specialtiesSnap.forEach(doc => {
+            const specialtyName = doc.data().name;
+            urls += `
+              <url>
+                <loc>https://www.doczappoint.com/doctors?speciality=${slugify(specialtyName)}</loc>
+                <changefreq>weekly</changefreq>
+                <priority>0.9</priority>
+              </url>`;
+        });
+
+        const allServicesRef = collection(db, "specialties");
+        const allServicesSnap = await getDocs(allServicesRef);
+
+        // Add doctor specialty routes
+        allServicesSnap.forEach(doc => {
+            const servicesName = doc.data().name;
+            urls += `
+              <url>
+                <loc>https://www.doczappoint.com/hospitals?q=&service=${slugify(servicesName)}</loc>
+                <changefreq>weekly</changefreq>
+                <priority>0.9</priority>
+              </url>`;
+        });
 
         // Add states and districts
         const statesRef = collection(db, "states");
@@ -74,48 +102,16 @@ export async function GET() {
             const stateName = stateDoc.id;
             const stateData = stateDoc.data();
 
-            // URL for the state page
-      //       urls += `
-      // <url>
-      //   <loc>https://www.doczappoint.com/${slugify(stateName)}</loc>
-      //   <changefreq>weekly</changefreq>
-      //   <priority>0.7</priority>
-      // </url>`;
-
             // Process each district in the state
             if (stateData.districts && Array.isArray(stateData.districts)) {
                 for (const districtName of stateData.districts) {
-                    // URL for district page
-      //               urls += `
-      // <url>
-      //   <loc>https://www.doczappoint.com/${slugify(stateName)}/${slugify(districtName)}</loc>
-      //   <changefreq>weekly</changefreq>
-      //   <priority>0.7</priority>
-      // </url>`;
-
-                    // URL for emergency services in this district
                     urls += `
-      <url>
-        <loc>https://www.doczappoint.com/${slugify(stateName)}/${slugify(districtName)}</loc>
-        <changefreq>weekly</changefreq>
-        <priority>0.8</priority>
-      </url>`;
+                      <url>
+                        <loc>https://www.doczappoint.com/${slugify(stateName)}/${slugify(districtName)}</loc>
+                        <changefreq>weekly</changefreq>
+                        <priority>0.8</priority>
+                      </url>`;
 
-                    // URL for doctors in this district
-      //               urls += `
-      // <url>
-      //   <loc>https://www.doczappoint.com/${slugify(stateName)}/${slugify(districtName)}/doctors</loc>
-      //   <changefreq>weekly</changefreq>
-      //   <priority>0.7</priority>
-      // </url>`;
-
-                    // URL for hospitals in this district
-      //               urls += `
-      // <url>
-      //   <loc>https://www.doczappoint.com/${slugify(stateName)}/${slugify(districtName)}/hospitals</loc>
-      //   <changefreq>monthly</changefreq>
-      //   <priority>0.7</priority>
-      // </url>`;
                 }
             }
         }
