@@ -1,10 +1,15 @@
+"use client"
 import { Suspense } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import {useSearchParams} from "next/navigation";
 
 export default function SearchLayout({ children }: { children: React.ReactNode }) {
-    const router = useRouter();
-    const { state, district, test } = router.query;
+    const searchParams = useSearchParams();
+
+    const state = searchParams.get("state");
+    const district = searchParams.get("district");
+    const test = searchParams.get("test");
 
     // Base metadata
     let title = "Find Diagnostic Labs Near You | Book Lab Tests Online";

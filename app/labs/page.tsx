@@ -25,11 +25,11 @@ interface Coordinates {
 export default function LabPage() {
     const searchParams = useSearchParams();
 
-    const state = searchParams.get("state");
-    const district = searchParams.get("district");
-    const test = searchParams.get("test");
+    const state = searchParams.get("state").split('-').join(' ');
+    const district = searchParams.get("district").split('-').join(' ');
+    const test = searchParams.get("test")?.split('-').join(' ');
 
-
+    console.log(test);
     const [labs, setLabs] = useState<LabWithDistance[]>([])
     const [userCoords, setUserCoords] = useState<Coordinates | null>(null)
     const [loading, setLoading] = useState(true)
