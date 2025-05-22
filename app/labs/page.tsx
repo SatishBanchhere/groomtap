@@ -25,8 +25,8 @@ interface Coordinates {
 export default function LabPage() {
     const searchParams = useSearchParams();
 
-    const state = searchParams.get("state").split('-').join(' ');
-    const district = searchParams.get("district").split('-').join(' ');
+    const state = searchParams.get("state")?.split('-')?.join(' ');
+    const district = searchParams.get("district")?.split('-')?.join(' ');
     const test = searchParams.get("test")?.split('-').join(' ');
 
     console.log(test);

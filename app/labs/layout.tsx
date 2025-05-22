@@ -1,15 +1,15 @@
-"use client"
-import { Suspense } from "react";
-import Head from "next/head";
-import { useRouter } from "next/router";
-import {useSearchParams} from "next/navigation";
+// app/labs/page.tsx (Server Component)
+import { Metadata } from 'next';
+import SearchLayout from './SearchLayout';
 
-export default function SearchLayout({ children }: { children: React.ReactNode }) {
-    const searchParams = useSearchParams();
-
-    const state = searchParams.get("state");
-    const district = searchParams.get("district");
-    const test = searchParams.get("test");
+export async function generateMetadata({
+                                           searchParams,
+                                       }: {
+    searchParams: URLSearchParams;
+}): Promise<Metadata> {
+    const state = searchParams?.get('state');
+    const district = searchParams?.get('district');
+    const test = searchParams?.get('test');
 
     // Base metadata
     let title = "Find Diagnostic Labs Near You | Book Lab Tests Online";
@@ -44,52 +44,35 @@ export default function SearchLayout({ children }: { children: React.ReactNode }
         canonicalUrl = `https://doczappoint.com/labs?test=${test}`;
     }
 
-    return (
-        <>
-            <Head>
-                <title>{title}</title>
-                <meta name="description" content={description} />
-                <meta name="keywords" content={keywords} />
-                <meta name="robots" content="index, follow" />
+    return {
+        title,
+        description,
+        keywords,
+        alternates: {
+            canonical: canonicalUrl,
+        },
+        openGraph: {
+            title,
+            description,
+            url: canonicalUrl,
+            images: [
+                {
+                    url: 'https://doczappoint.com/images/labs-og-image.jpg',
+                    width: 1200,
+                    height: 630,
+                    alt: title,
+                },
+            ],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: ['https://doczappoint.com/images/labs-twitter-image.jpg'],
+        },
+    };
+}
 
-                {/* Open Graph / Facebook */}
-                <meta property="og:title" content={title} />
-                <meta property="og:description" content={description} />
-                <meta property="og:type" content="website" />
-                <meta property="og:url" content={canonicalUrl} />
-                <meta property="og:image" content="https://doczappoint.com/images/labs-og-image.jpg" />
-
-                {/* Twitter */}
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content={title} />
-                <meta name="twitter:description" content={description} />
-                <meta name="twitter:image" content="https://doczappoint.com/images/labs-twitter-image.jpg" />
-
-                {/* Canonical URL */}
-                <link rel="canonical" href={canonicalUrl} />
-
-                {/* Schema.org markup */}
-                <script type="application/ld+json">
-                    {JSON.stringify({
-                        "@context": "https://schema.org",
-                        "@type": "MedicalOrganization",
-                        "name": "DoczAppoint Diagnostic Labs",
-                        "description": description,
-                        "url": canonicalUrl,
-                        "sameAs": [
-                            "https://www.facebook.com/doczappoint",
-                            "https://www.twitter.com/doczappoint"
-                        ]
-                    })}
-                </script>
-            </Head>
-            <div className="bg-gray-50 min-h-screen">
-                <div className="container mx-auto px-4 py-8">
-                    <Suspense fallback={<div>Loading search results...</div>}>
-                        {children}
-                    </Suspense>
-                </div>
-            </div>
-        </>
-    );
+export default function Page({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+    return <SearchLayout searchParams={searchParams} />;
 }
