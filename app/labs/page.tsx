@@ -1,15 +1,16 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import {useCallback, useEffect, useState} from 'react'
 import PageHeader from "@/components/shared/page-header"
 import LabSearch from "@/components/labs/lab-search"
 import LabResults from "@/components/labs/lab-results"
 import Pagination from "@/components/shared/pagination"
 import AnimatedLayout from "@/components/shared/animated-layout"
 import AnimatedSection from "@/components/shared/animated-section"
-import { getDocs, collection } from "firebase/firestore"
-import { db } from "@/lib/firebase"
-import { Lab } from '@/types/lab'
+import {collection, getDocs, query, where} from "firebase/firestore"
+import {db} from "@/lib/firebase"
+import {Lab} from '@/types/lab'
+import {useSearchParams} from "next/navigation";
 
 interface LabWithDistance extends Lab {
     distance?: string
@@ -22,17 +23,25 @@ interface Coordinates {
 }
 
 export default function LabPage() {
+    const searchParams = useSearchParams();
+
+    const state = searchParams.get("state");
+    const district = searchParams.get("district");
+    const test = searchParams.get("test");
+
+
     const [labs, setLabs] = useState<LabWithDistance[]>([])
     const [userCoords, setUserCoords] = useState<Coordinates | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [locationAvailable, setLocationAvailable] = useState(false)
+
     useEffect(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 () => setLocationAvailable(true),
                 () => setLocationAvailable(false),
-                { timeout: 5000 }
+                {timeout: 5000}
             )
         }
     }, [])
@@ -64,6 +73,7 @@ export default function LabPage() {
     }, [])
 
     const geocodeLabAddress = async (lab: Lab): Promise<Coordinates | null> => {
+
         try {
             const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
             if (!API_KEY) return null
@@ -107,17 +117,17 @@ export default function LabPage() {
         const Δφ = (coords2.lat - coords1.lat) * Math.PI / 180
         const Δλ = (coords2.lng - coords1.lng) * Math.PI / 180
 
-        const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
             Math.cos(φ1) * Math.cos(φ2) *
-            Math.sin(Δλ/2) * Math.sin(Δλ/2)
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2)
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
         const distance = R * c
 
         let distanceText
         if (distance < 1000) {
             distanceText = `${Math.round(distance)} m`
         } else {
-            distanceText = `${(distance/1000).toFixed(1)} km`
+            distanceText = `${(distance / 1000).toFixed(1)} km`
         }
 
         return {
@@ -128,7 +138,7 @@ export default function LabPage() {
 
     const processLabsWithDistances = async (labs: Lab[]): Promise<LabWithDistance[]> => {
         if (!userCoords) {
-            return labs.map(lab => ({ ...lab }))
+            return labs.map(lab => ({...lab}))
         }
 
         const labsWithCoordinates = []
@@ -147,7 +157,7 @@ export default function LabPage() {
                             distanceValue: distanceResult.value
                         }
                     }
-                    return { ...lab }
+                    return {...lab}
                 })
             )
             labsWithCoordinates.push(...batchResults)
@@ -159,13 +169,63 @@ export default function LabPage() {
     const fetchLabs = useCallback(async () => {
         try {
             setLoading(true)
-            const labsRef = collection(db, "lab_form")
-            const snapshot = await getDocs(labsRef)
-            const labsData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as Lab[]
-            if(!locationAvailable){
+            // const labsRef = collection(db, "lab_form")
+            // const snapshot = await getDocs(labsRef)
+            // const labsData = snapshot.docs.map(doc => ({
+            //     id: doc.id,
+            //     ...doc.data()
+            // })) as Lab[];
+
+             async function getFilteredLabs({
+                                                      state,
+                                                      district,
+                                                      test,
+                                                  }: {
+                state?: string;
+                district?: string;
+                test?: string;
+            }) {
+                const labsRef = collection(db, "lab_form");
+                const filters = [];
+
+                if (state) {
+                    filters.push(where("location.state", "==", state));
+                }
+
+                if (district) {
+                    filters.push(where("location.district", "==", district));
+                }
+
+                // Firestore doesn't allow querying inside array of objects directly on nested fields.
+                // So we fetch all matching state/district labs, and filter `test` manually.
+                const q = filters.length ? query(labsRef, ...filters) : labsRef;
+                const snapshot = await getDocs(q);
+
+                const labsData = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }));
+                console.log("Before tests: ", labsData);
+                // Now filter by `test` (manually)
+                return test
+                    ? labsData.filter(lab =>
+                        lab.specialties?.some((spec: any) =>
+                            spec.name?.toLowerCase() === test.toLowerCase()
+                        )
+                    )
+                    : labsData;
+            }
+
+
+            const labsData = await getFilteredLabs({
+                state,
+                district,
+                test
+            });
+            console.log(state);
+            console.log(district);
+            console.log(labsData);
+            if (!locationAvailable || (state && district)) {
                 console.log(labsData)
                 setLabs(labsData)
                 return;
@@ -184,7 +244,7 @@ export default function LabPage() {
                 return 0
             })
 
-            setLabs(sortedLabs)
+            setLabs(sortedLabs);
         } catch (err) {
             console.log(err)
             setLocationAvailable(false);
@@ -200,7 +260,7 @@ export default function LabPage() {
 
     return (
         <AnimatedLayout>
-            <PageHeader title="Search Nearby Labs" breadcrumb={["Home", "Nearby Labs"]} />
+            <PageHeader title="Search Nearby Labs" breadcrumb={["Home", "Nearby Labs"]}/>
             <div className="bg-background py-6">
                 <div className="container mx-auto px-4">
                     {error && (
@@ -216,13 +276,14 @@ export default function LabPage() {
                     )}
 
                     <AnimatedSection animation="slideUp" delay={0.2}>
-                        <LabSearch />
+                        <LabSearch/>
                     </AnimatedSection>
 
                     <AnimatedSection animation="fadeIn" delay={0.4}>
                         {loading ? (
                             <div className="flex justify-center items-center h-64">
-                                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                                <div
+                                    className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
                                 <span className="ml-3">Loading nearby labs...</span>
                             </div>
                         ) : labs.length > 0 ? (
@@ -230,7 +291,7 @@ export default function LabPage() {
                                 <p className="text-sm text-gray-600 mb-4">
                                     Showing {labs.length} labs within 7km of your location
                                 </p>
-                                <LabResults labs={labs} />
+                                <LabResults labs={labs}/>
                             </>
                         ) : (
                             <div className="text-center py-12">
@@ -245,7 +306,7 @@ export default function LabPage() {
                     </AnimatedSection>
 
                     <AnimatedSection animation="slideUp" delay={0.6}>
-                        <Pagination />
+                        <Pagination/>
                     </AnimatedSection>
                 </div>
             </div>

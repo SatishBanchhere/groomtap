@@ -1,9 +1,11 @@
 import { db } from "@/lib/firebase";
 import { NextResponse } from "next/server";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 
 export async function GET() {
     try {
+        console.log("Starting sitemap generation...");
+
         // Define all collections with their URL paths and sitemap options
         const collectionsToInclude = [
             {
@@ -34,86 +36,113 @@ export async function GET() {
 
         let urls = "";
 
+        // Helper function to add URL entries safely
+        const addUrl = (path: string, changefreq: string, priority: string) => {
+            urls += `
+      <url>
+        <loc>${escapeXml(`https://www.doczappoint.com/${path}`)}</loc>
+        <changefreq>${escapeXml(changefreq)}</changefreq>
+        <priority>${escapeXml(priority)}</priority>
+      </url>`;
+        };
+
         // Add static pages
         const staticPages = [
             { path: "", changefreq: "daily", priority: "1.0" },
             { path: "about", changefreq: "monthly", priority: "0.8" },
             { path: "contact", changefreq: "monthly", priority: "0.8" },
             { path: "emergency", changefreq: "daily", priority: "0.9" },
-            // Add other important static pages
         ];
 
-        staticPages.forEach(page => {
-            urls += `
-      <url>
-        <loc>https://www.doczappoint.com/${page.path}</loc>
-        <changefreq>${page.changefreq}</changefreq>
-        <priority>${page.priority}</priority>
-      </url>`;
-        });
+        staticPages.forEach(page => addUrl(page.path, page.changefreq, page.priority));
 
         // Process dynamic collections
         for (const { name, path, changefreq, priority } of collectionsToInclude) {
-            const ref = collection(db, name);
-            const snap = await getDocs(ref);
-            snap.forEach(doc => {
-                urls += `
-                  <url>
-                    <loc>https://www.doczappoint.com/${path}/${doc.id}</loc>
-                    <changefreq>${changefreq}</changefreq>
-                    <priority>${priority}</priority>
-                  </url>`;
-            });
+            try {
+                const ref = collection(db, name);
+                const snap = await getDocs(ref);
+
+                snap.forEach(doc => {
+                    addUrl(`${path}/${doc.id}`, changefreq, priority);
+                });
+            } catch (error) {
+                console.error(`Error processing collection ${name}:`, error);
+            }
         }
 
-        const specialtiesRef = collection(db, "specialties");
-        const specialtiesSnap = await getDocs(specialtiesRef);
+        // Process specialties
+        try {
+            const specialtiesRef = collection(db, "specialties");
+            const specialtiesSnap = await getDocs(specialtiesRef);
 
-        // Add doctor specialty routes
-        specialtiesSnap.forEach(doc => {
-            const specialtyName = doc.data().name;
-            urls += `
-              <url>
-                <loc>https://www.doczappoint.com/doctors?speciality=${slugify(specialtyName)}</loc>
-                <changefreq>weekly</changefreq>
-                <priority>0.9</priority>
-              </url>`;
-        });
+            specialtiesSnap.forEach(doc => {
+                const specialtyName = doc.data()?.name;
+                if (specialtyName) {
+                    addUrl(`doctors?speciality=${slugify(specialtyName)}`, "weekly", "0.9");
+                    addUrl(`hospitals?q=&service=${slugify(specialtyName)}`, "weekly", "0.9");
+                }
+            });
+        } catch (error) {
+            console.error("Error processing specialties:", error);
+        }
 
-        const allServicesRef = collection(db, "specialties");
-        const allServicesSnap = await getDocs(allServicesRef);
+        // Process states and districts
+        try {
+            const statesRef = collection(db, "states");
+            const statesSnap = await getDocs(statesRef);
 
-        // Add doctor specialty routes
-        allServicesSnap.forEach(doc => {
-            const servicesName = doc.data().name;
-            urls += `
-              <url>
-                <loc>https://www.doczappoint.com/hospitals?q=&amp;service=${slugify(servicesName)}</loc>
-                <changefreq>weekly</changefreq>
-                <priority>0.9</priority>
-              </url>`;
-        });
+            for (const stateDoc of statesSnap.docs) {
+                const stateName = stateDoc.id;
+                const stateData = stateDoc.data();
+                const districts = stateData.districts || [];
 
-        // Add states and districts
-        const statesRef = collection(db, "states");
-        const statesSnap = await getDocs(statesRef);
+                districts.forEach((districtName: string) => {
+                    addUrl(`${slugify(stateName)}/${slugify(districtName)}`, "weekly", "0.8");
+                });
+            }
+        } catch (error) {
+            console.error("Error processing states:", error);
+        }
 
-        for (const stateDoc of statesSnap.docs) {
-            const stateName = stateDoc.id;
-            const stateData = stateDoc.data();
+        // Process lab tests with state/district combinations
+        try {
+            console.log("Fetching lab tests...");
+            const testsRef = collection(db, "specialtiesLab");
+            const testsSnap = await getDocs(testsRef);
+            const tests: string[] = [];
 
-            // Process each district in the state
-            if (stateData.districts && Array.isArray(stateData.districts)) {
-                for (const districtName of stateData.districts) {
-                    urls += `
-                      <url>
-                        <loc>https://www.doczappoint.com/${slugify(stateName)}/${slugify(districtName)}</loc>
-                        <changefreq>weekly</changefreq>
-                        <priority>0.8</priority>
-                      </url>`;
+            testsSnap.forEach(testDoc => {
+                const testName = testDoc.data()?.name;
+                if (testName) tests.push(testName);
+            });
 
+            console.log(`Found ${tests.length} tests`);
+
+            const statesRef = collection(db, "states");
+            const statesSnap = await getDocs(statesRef);
+            let combinationCount = 0;
+
+            for (const stateDoc of statesSnap.docs) {
+                const stateName = stateDoc?.id;
+                const districts = stateDoc.data()?.districts || [];
+                console.log(stateDoc.data());
+                // if (!stateName) continue;
+
+                for (const district of districts) {
+                    for (const test of tests) {
+                        combinationCount++;
+                        addUrl(
+                            `labs?state=${slugify(stateName)}&district=${slugify(district)}&test=${slugify(test)}`,
+                            "weekly",
+                            "0.7"
+                        );
+                    }
                 }
             }
+
+            console.log(`Generated ${combinationCount} state-district-test combinations`);
+        } catch (error) {
+            console.error("Error processing lab tests:", error);
         }
 
         const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -131,14 +160,30 @@ export async function GET() {
     }
 }
 
-// Helper function to convert names to URL-friendly slugs
-function slugify(text: string): string {
+// Improved slugify with null check
+function slugify(text: string | undefined | null): string {
+    if (!text) return '';
     return text
         .toString()
         .toLowerCase()
-        .replace(/\s+/g, '-')           // Replace spaces with -
-        .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-        .replace(/\-\-+/g, '-')         // Replace multiple - with single -
-        .replace(/^-+/, '')             // Trim - from start of text
-        .replace(/-+$/, '');            // Trim - from end of text
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+}
+
+// XML escaping function
+function escapeXml(unsafe: string): string {
+    if (!unsafe) return '';
+    return unsafe.replace(/[<>&'"]/g, (c) => {
+        switch (c) {
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '&': return '&amp;';
+            case '\'': return '&apos;';
+            case '"': return '&quot;';
+            default: return c;
+        }
+    });
 }

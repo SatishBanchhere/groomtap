@@ -13,47 +13,49 @@ type LabResultsProps = {
 }
 
 export default function LabResults({ labs }: LabResultsProps) {
-    const searchParams = useSearchParams()
-    const testFilter = searchParams.get('test') || 'All'
+    // const searchParams = useSearchParams()
+    // const testFilter = searchParams.get('test') || 'All'
+    //
+    // // Get unique test types for filter dropdown
+    // const testTypes = ['All', ...new Set(labs?.flatMap(lab => lab.tests || []))]
+    //
+    // // Filter labs based on search and test type
+    // const filteredLabs = labs?.filter(lab => {
+    //     const searchTerm = searchParams.get('search')?.toLowerCase() || ''
+    //     const matchesSearch =
+    //         lab.fullName?.toLowerCase().includes(searchTerm) ||
+    //         lab.location?.city?.toLowerCase().includes(searchTerm) ||
+    //         lab.location?.state?.toLowerCase().includes(searchTerm) ||
+    //         (lab.specialties?.some(test => test.name.toLowerCase().includes(searchTerm))) ||
+    //         lab.serviceType?.toLowerCase().includes(searchTerm)
+    //
+    //     const matchesTest = testFilter === 'All' || lab.tests?.includes(testFilter)
+    //
+    //     return matchesSearch && matchesTest
+    // })
 
-    // Get unique test types for filter dropdown
-    const testTypes = ['All', ...new Set(labs?.flatMap(lab => lab.tests || []))]
-
-    // Filter labs based on search and test type
-    const filteredLabs = labs?.filter(lab => {
-        const searchTerm = searchParams.get('search')?.toLowerCase() || ''
-        const matchesSearch =
-            lab.fullName?.toLowerCase().includes(searchTerm) ||
-            lab.location?.city?.toLowerCase().includes(searchTerm) ||
-            lab.location?.state?.toLowerCase().includes(searchTerm) ||
-            (lab.specialties?.some(test => test.name.toLowerCase().includes(searchTerm))) ||
-            lab.serviceType?.toLowerCase().includes(searchTerm)
-
-        const matchesTest = testFilter === 'All' || lab.tests?.includes(testFilter)
-
-        return matchesSearch && matchesTest
-    })
+    const filteredLabs = labs;
 
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold">Showing {filteredLabs?.length} Results</h2>
-                <div className="flex items-center space-x-2">
-                    <span className="text-sm">Filter by:</span>
-                    <select
-                        className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none"
-                        value={testFilter}
-                        onChange={(e) => {
-                            const params = new URLSearchParams(searchParams.toString())
-                            params.set('test', e.target.value)
-                            window.location.search = params.toString()
-                        }}
-                    >
-                        {testTypes.map(test => (
-                            <option key={test} value={test}>{test}</option>
-                        ))}
-                    </select>
-                </div>
+                {/*<div className="flex items-center space-x-2">*/}
+                {/*    <span className="text-sm">Filter by:</span>*/}
+                {/*    <select*/}
+                {/*        className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none"*/}
+                {/*        value={testFilter}*/}
+                {/*        onChange={(e) => {*/}
+                {/*            const params = new URLSearchParams(searchParams.toString())*/}
+                {/*            params.set('test', e.target.value)*/}
+                {/*            window.location.search = params.toString()*/}
+                {/*        }}*/}
+                {/*    >*/}
+                {/*        {testTypes.map(test => (*/}
+                {/*            <option key={test} value={test}>{test}</option>*/}
+                {/*        ))}*/}
+                {/*    </select>*/}
+                {/*</div>*/}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredLabs?.map((lab) => (

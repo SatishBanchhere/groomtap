@@ -216,6 +216,7 @@ export default function DoctorSearchPage() {
     }
 
     const processDoctorsWithDistances = async (doctors: Doctor[]): Promise<DoctorWithDistance[]> => {
+
         if (!userCoords) {
             return doctors.map(doctor => ({...doctor}))
         }
