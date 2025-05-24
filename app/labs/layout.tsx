@@ -1,78 +1,100 @@
-// app/labs/layout.tsx (Server Component)
-import { Metadata } from 'next';
-import SearchLayout from './SearchLayout';
+import { Suspense } from "react"
+import Head from "next/head";
 
-export async function generateMetadata({
-                                           searchParams,
-                                       }: {
-    searchParams: URLSearchParams;
-}): Promise<Metadata> {
-    const state = searchParams?.get('state');
-    const district = searchParams?.get('district');
-    const test = searchParams?.get('test');
-
-    // Base metadata
-    let title = "Find Diagnostic Labs Near You | Book Lab Tests Online";
-    let description = "Search and book diagnostic lab tests near you. Fast, secure, and trusted labs for blood tests, health checkups, and more.";
-    let keywords = "labs near me, diagnostic labs, pathology lab, book lab tests online, health checkup labs";
-    let canonicalUrl = "https://doczappoint.com/labs";
-
-    // Dynamic metadata based on URL params
-    if (state && district && test) {
-        const formattedState = decodeURIComponent(state as string).replace(/-/g, ' ');
-        const formattedDistrict = decodeURIComponent(district as string).replace(/-/g, ' ');
-        const formattedTest = decodeURIComponent(test as string).replace(/-/g, ' ');
-
-        title = `Best ${formattedTest} Labs in ${formattedDistrict}, ${formattedState} | Book Online`;
-        description = `Find top-rated ${formattedTest} labs in ${formattedDistrict}, ${formattedState}. Book tests online with home sample collection and get accurate results.`;
-        keywords = `${formattedTest} test, ${formattedDistrict} labs, ${formattedState} pathology centers, ${formattedTest} near me, diagnostic centers in ${formattedDistrict}`;
-        canonicalUrl = `https://doczappoint.com/labs?state=${state}&district=${district}&test=${test}`;
-    } else if (state && district) {
-        const formattedState = decodeURIComponent(state as string).replace(/-/g, ' ');
-        const formattedDistrict = decodeURIComponent(district as string).replace(/-/g, ' ');
-
-        title = `Diagnostic Labs in ${formattedDistrict}, ${formattedState} | Book Tests Online`;
-        description = `Find and book lab tests at trusted diagnostic centers in ${formattedDistrict}, ${formattedState}. Blood tests, health packages, and more.`;
-        keywords = `${formattedDistrict} labs, ${formattedState} pathology centers, diagnostic centers in ${formattedDistrict}, blood test labs near me`;
-        canonicalUrl = `https://doczappoint.com/labs?state=${state}&district=${district}`;
-    } else if (test) {
-        const formattedTest = decodeURIComponent(test as string).replace(/-/g, ' ');
-
-        title = `Best ${formattedTest} Labs Near You | Book Online Tests`;
-        description = `Find top-rated labs for ${formattedTest} near you. Book tests online with quick results and home sample collection available.`;
-        keywords = `${formattedTest} test, ${formattedTest} near me, ${formattedTest} lab centers, book ${formattedTest} online`;
-        canonicalUrl = `https://doczappoint.com/labs?test=${test}`;
-    }
-
-    return {
-        title,
-        description,
-        keywords,
-        alternates: {
-            canonical: canonicalUrl,
-        },
-        openGraph: {
-            title,
-            description,
-            url: canonicalUrl,
-            images: [
-                {
-                    url: 'https://doczappoint.com/images/labs-og-image.jpg',
-                    width: 1200,
-                    height: 630,
-                    alt: title,
-                },
-            ],
-        },
-        twitter: {
-            card: 'summary_large_image',
-            title,
-            description,
-            images: ['https://doczappoint.com/images/labs-twitter-image.jpg'],
-        },
+interface SearchLayoutProps {
+    children: React.ReactNode;
+    params: {
+        state?: string;
+        district?: string;
+        test?: string;
+    };
+    searchParams: {
+        state?: string;
+        district?: string;
+        test?: string;
     };
 }
 
-export default function Page({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
-    return <SearchLayout searchParams={searchParams} />;
+export default function SearchLayout({
+                                         children,
+                                         params,
+                                         searchParams,
+                                     }: SearchLayoutProps) {
+    // Get the actual values from either params or searchParams
+    const state = params.state || searchParams?.state;
+    const district = params.district || searchParams?.district;
+    const test = params.test || searchParams?.test;
+
+    // Helper function to format text (replace hyphens with spaces and capitalize)
+    const formatText = (text?: string) => {
+        if (!text) return '';
+        return text.split('-').map(word =>
+            word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+    };
+
+    // Generate dynamic title and description
+    const generateMetadata = () => {
+        const formattedState = formatText(state);
+        const formattedDistrict = formatText(district);
+        const formattedTest = formatText(test);
+
+        let title = 'Find Diagnostic Labs Near You | Book Tests Online';
+        let description = 'Search and book diagnostic lab tests near you. Fast, secure, and trusted labs for blood tests, health checkups, and more.';
+        let keywords = 'diagnostic labs near me, book lab tests, blood test centers, health checkup, pathology labs';
+
+        if (formattedTest) {
+            title = `${formattedTest} Tests`;
+            description = `Find the best labs for ${formattedTest.toLowerCase()} tests near you. ${description}`;
+            keywords = `${formattedTest.toLowerCase()} test near me, ${keywords}`;
+        }
+
+        if (formattedState) {
+            title = `${title} in ${formattedState}`;
+            description = `${description} Serving ${formattedState}.`;
+            keywords = `${keywords}, labs in ${formattedState.toLowerCase()}`;
+        }
+
+        if (formattedDistrict) {
+            title = `${title}, ${formattedDistrict}`;
+            description = `${description} Find local labs in ${formattedDistrict}.`;
+            keywords = `${keywords}, labs in ${formattedDistrict.toLowerCase()}`;
+        }
+
+        return { title, description, keywords };
+    };
+
+    const { title, description, keywords } = generateMetadata();
+
+    return (
+        <>
+            <Head>
+                <title>{title}</title>
+                <meta name="description" content={description} />
+                <meta name="keywords" content={keywords} />
+                <meta name="robots" content="index, follow" />
+                <meta property="og:title" content={title} />
+                <meta property="og:description" content={description} />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://doczappoint.com/labs" />
+
+                {/* Canonical URL - important for SEO */}
+                <link
+                    rel="canonical"
+                    href={`https://doczappoint.com/labs${
+                        state ? `/${state}` : ''
+                    }${district ? `/${district}` : ''}${
+                        test ? `?test=${test}` : ''
+                    }`}
+                />
+            </Head>
+            <div className="bg-gray-50 min-h-screen">
+                <div className="container mx-auto px-4 py-8">
+                    <Suspense fallback={<div>Loading search results...</div>}>
+                        {children}
+                    </Suspense>
+                </div>
+            </div>
+        </>
+    )
 }
