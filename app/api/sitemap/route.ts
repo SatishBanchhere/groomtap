@@ -144,6 +144,46 @@ export async function GET() {
         } catch (error) {
             console.error("Error processing lab tests:", error);
         }
+        // Process doctors tests with state/district combinations
+        try {
+            console.log("Fetching doctors tests...");
+            const specialtiesRef = collection(db, "specialties");
+            const specialtiesSnap = await getDocs(specialtiesRef);
+            const specialties: string[] = [];
+
+            specialtiesSnap.forEach(specialtiesDoc => {
+                const testName = specialtiesDoc.data()?.name;
+                if (testName) specialties.push(testName);
+            });
+
+            console.log(`Found ${specialties.length} tests`);
+
+            const statesRef = collection(db, "states");
+            const statesSnap = await getDocs(statesRef);
+            let combinationCount = 0;
+
+            for (const stateDoc of statesSnap.docs) {
+                const stateName = stateDoc?.id;
+                const districts = stateDoc.data()?.districts || [];
+                console.log(stateDoc.data());
+                // if (!stateName) continue;
+
+                for (const district of districts) {
+                    for (const specialty of specialties) {
+                        combinationCount++;
+                        addUrl(
+                            `doctors?state=${slugify(stateName)}&district=${slugify(district)}&test=${slugify(specialty)}`,
+                            "weekly",
+                            "0.7"
+                        );
+                    }
+                }
+            }
+
+            console.log(`Generated ${combinationCount} state-district-test combinations`);
+        } catch (error) {
+            console.error("Error processing doctor tests:", error);
+        }
 
         const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
       <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
