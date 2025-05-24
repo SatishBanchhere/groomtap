@@ -1,4 +1,3 @@
-// app/doctors/search/page.tsx
 'use client'
 
 import {useEffect, useState, useCallback} from 'react'
@@ -69,13 +68,17 @@ export default function DoctorSearchPage() {
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage, setItemsPerPage] = useState(6)
 
+    const state = searchParams.get("state")?.split('-')?.join(' ')
+    const district = searchParams.get("district")?.split('-')?.join(' ')
+    const specialty = searchParams.get("specialty")?.split('-').join(' ')
 
     useEffect(() => {
         const specialityFromUrl = searchParams.get('speciality')
         if (specialityFromUrl) {
+            setSelectedSpecialty(specialityFromUrl)
             setSearchQuery(specialityFromUrl)
         }
-    }, [searchParams]);
+    }, [searchParams])
 
     useEffect(() => {
         if (navigator.geolocation) {
@@ -125,7 +128,6 @@ export default function DoctorSearchPage() {
                     ...doc.data()
                 })) as Specialty[]
                 setSpecialties(specialtiesData)
-                console.log(specialtiesData)
             } catch (error) {
                 console.error('Error fetching specialties:', error)
             }
@@ -216,7 +218,6 @@ export default function DoctorSearchPage() {
     }
 
     const processDoctorsWithDistances = async (doctors: Doctor[]): Promise<DoctorWithDistance[]> => {
-
         if (!userCoords) {
             return doctors.map(doctor => ({...doctor}))
         }
@@ -251,31 +252,61 @@ export default function DoctorSearchPage() {
             setLoading(true)
             setError(null)
 
-            const doctorsRef = collection(db, 'doctors')
-            let q = query(doctorsRef, where('status', '==', 'active'))
-            q = query(q, orderBy('createdAt', 'desc'))
+            async function getFilteredDoctors({
+                                                  state,
+                                                  district,
+                                                  specialty,
+                                              }: {
+                state?: string;
+                district?: string;
+                specialty?: string;
+            }) {
+                const doctorsRef = collection(db, 'doctors');
+                const filters = [where('status', '==', 'active')];
 
-            const querySnapshot = await getDocs(q)
-            let doctorsData: Doctor[] = []
+                if (state) {
+                    filters.push(where('location.state', '==', state));
+                }
 
-            querySnapshot.forEach((doc) => {
-                const data = doc.data()
-                doctorsData.push({
-                    id: doc.id,
-                    fullName: data.fullName || 'Unknown Doctor',
-                    specialty: data.specialty,
-                    imageUrl: data.imageUrl,
-                    consultationFees: data.consultationFees,
-                    experience: data.experience,
-                    ayushmanCardAvailable: data.ayushmanCardAvailable,
-                    qualification: data.qualification,
-                    about: data.about,
-                    email: data.email,
-                    phone: data.phone,
-                    createdAt: data.createdAt,
-                    location: data.location
-                })
-            })
+                if (district) {
+                    filters.push(where('location.district', '==', district));
+                }
+
+                const q = query(doctorsRef, ...filters, orderBy('createdAt', 'desc'));
+                const snapshot = await getDocs(q);
+
+                let doctorsData = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        fullName: data.fullName || 'Unknown Doctor',
+                        specialty: data.specialty,
+                        imageUrl: data.imageUrl,
+                        consultationFees: data.consultationFees,
+                        experience: data.experience,
+                        ayushmanCardAvailable: data.ayushmanCardAvailable,
+                        qualification: data.qualification,
+                        about: data.about,
+                        email: data.email,
+                        phone: data.phone,
+                        createdAt: data.createdAt,
+                        location: data.location
+                    };
+                });
+
+                return specialty
+                    ? doctorsData.filter(doctor =>
+                        doctor.specialty?.toLowerCase().includes(specialty.toLowerCase())
+                    )
+                    : doctorsData;
+
+            }
+
+            const doctorsData = await getFilteredDoctors({
+                state,
+                district,
+                specialty
+            });
 
             const processedDoctors = await processDoctorsWithDistances(doctorsData)
             const sortedDoctors = processedDoctors.sort((a, b) => {
@@ -292,7 +323,7 @@ export default function DoctorSearchPage() {
         } finally {
             setLoading(false)
         }
-    }, [userCoords, locationAvailable])
+    }, [userCoords, locationAvailable, state, district, specialty])
 
     useEffect(() => {
         fetchDoctors()
@@ -337,358 +368,361 @@ export default function DoctorSearchPage() {
         router.push(`?${params.toString()}`, { scroll: false })
     }
 
-        // Pagination calculations
-        const indexOfLastItem = currentPage * itemsPerPage
-        const indexOfFirstItem = indexOfLastItem - itemsPerPage
-        const currentDoctors = filteredDoctors.slice(indexOfFirstItem, indexOfLastItem)
-        const totalPages = Math.ceil(filteredDoctors.length / itemsPerPage)
+    // Pagination calculations
+    const indexOfLastItem = currentPage * itemsPerPage
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage
+    const currentDoctors = filteredDoctors.slice(indexOfFirstItem, indexOfLastItem)
+    const totalPages = Math.ceil(filteredDoctors.length / itemsPerPage)
 
-        return (
-            <div className="container mx-auto px-4 py-8">
-                <div className="flex items-center gap-4 mb-8">
-                    <Link href="/" className="flex items-center text-gray-600 hover:text-gray-900">
-                        <ArrowLeft className="w-5 h-5 mr-2"/>
-                        Back to Home
-                    </Link>
-                </div>
+    return (
+        <div className="container mx-auto px-4 py-8">
+            <div className="flex items-center gap-4 mb-8">
+                <Link href="/" className="flex items-center text-gray-600 hover:text-gray-900">
+                    <ArrowLeft className="w-5 h-5 mr-2"/>
+                    Back to Home
+                </Link>
+            </div>
 
-                {/* Search Bar */}
-                <div className="mb-8">
-                    <form onSubmit={handleSearch} className="flex gap-4">
-                        <div className="relative flex-1">
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search doctors by name or specialty..."
-                                className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                            />
-                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none"
-                                     viewBox="0 0 24 24"
-                                     stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                </svg>
-                            </div>
+            {/* Search Bar */}
+            <div className="mb-8">
+                <form onSubmit={handleSearch} className="flex gap-4">
+                    <div className="relative flex-1">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search doctors by name or specialty..."
+                            className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
                         </div>
-                        <button
-                            type="submit"
-                            className="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
-                        >
-                            Search
-                        </button>
-                    </form>
-                </div>
+                    </div>
+                    <button
+                        type="submit"
+                        className="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                    >
+                        Search
+                    </button>
+                </form>
+            </div>
 
-                {/* Specialty Slider - Updated with Larger Boxes */}
-                <div className="mb-8">
-                    <div className="w-full overflow-x-auto py-4">
-                        <div className="flex space-x-4 px-4">
-                            {/* All Specialties Button */}
+            {/* Specialty Slider */}
+            <div className="mb-8">
+                <div className="w-full overflow-x-auto py-4">
+                    <div className="flex space-x-4 px-4">
+                        {/* All Specialties Button */}
+                        <motion.div
+                            whileHover={{scale: 1.05}}
+                            whileTap={{scale: 0.95}}
+                        >
+                            <Button
+                                onClick={() => handleSpecialitySelect(null)}
+                                className={`flex flex-col items-center justify-center px-6 py-4 rounded-xl min-w-[120px] ${
+                                    !selectedSpecialty
+                                        ? 'bg-blue-100 border-2 border-blue-500'
+                                        : 'bg-gray-100 hover:bg-gray-200'
+                                } transition-colors h-full`}
+                            >
+                                <div
+                                    className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-3">
+                                    <span className="text-2xl">👨‍⚕️</span>
+                                </div>
+                                <span className="text-base font-medium">All</span>
+                            </Button>
+                        </motion.div>
+
+                        {/* Specialty Buttons */}
+                        {specialties.map((specialty) => (
                             <motion.div
+                                key={specialty.id}
                                 whileHover={{scale: 1.05}}
                                 whileTap={{scale: 0.95}}
                             >
                                 <Button
-                                    onClick={() => handleSpecialitySelect(null)}
+                                    onClick={() => handleSpecialitySelect(specialty.name)}
                                     className={`flex flex-col items-center justify-center px-6 py-4 rounded-xl min-w-[120px] ${
-                                        !selectedSpecialty
+                                        selectedSpecialty === specialty.name
                                             ? 'bg-blue-100 border-2 border-blue-500'
                                             : 'bg-gray-100 hover:bg-gray-200'
                                     } transition-colors h-full`}
                                 >
-                                    <div
-                                        className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-3">
-                                        <span className="text-2xl">👨‍⚕️</span>
+                                    <div className="w-16 h-16 rounded-full overflow-hidden mb-3 relative">
+                                        {specialty.imageUrl ? (
+                                            <Image
+                                                src={specialty.imageUrl}
+                                                alt={specialty.name}
+                                                fill
+                                                className="object-cover"
+                                                unoptimized
+                                                onError={(e) => {
+                                                    console.error('Failed to load image:', specialty.imageUrl);
+                                                    e.currentTarget.style.display = 'none';
+                                                }}
+                                            />
+                                        ) : (
+                                            <div
+                                                className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                                <span className="text-2xl">🏥</span>
+                                            </div>
+                                        )}
                                     </div>
-                                    <span className="text-base font-medium">All</span>
+                                    <span className="text-base font-medium text-center">
+                                        {specialty.name}
+                                    </span>
                                 </Button>
                             </motion.div>
-
-                            {/* Specialty Buttons */}
-                            {specialties.map((specialty) => (
-                                <motion.div
-                                    key={specialty.id}
-                                    whileHover={{scale: 1.05}}
-                                    whileTap={{scale: 0.95}}
-                                >
-                                    <Button
-                                        onClick={() => handleSpecialitySelect(specialty.name)}
-                                        className={`flex flex-col items-center justify-center px-6 py-4 rounded-xl min-w-[120px] ${
-                                            selectedSpecialty === specialty.name
-                                                ? 'bg-blue-100 border-2 border-blue-500'
-                                                : 'bg-gray-100 hover:bg-gray-200'
-                                        } transition-colors h-full`}
-                                    >
-                                        <div className="w-16 h-16 rounded-full overflow-hidden mb-3 relative">
-                                            {specialty.imageUrl ? (
-                                                <Image
-                                                    src={specialty.imageUrl}
-                                                    alt={specialty.name}
-                                                    fill
-                                                    className="object-cover"
-                                                    unoptimized
-                                                    onError={(e) => {
-                                                        console.error('Failed to load image:', specialty.imageUrl);
-                                                        e.currentTarget.style.display = 'none';
-                                                    }}
-                                                />
-                                            ) : (
-                                                <div
-                                                    className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                                    <span className="text-2xl">🏥</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <span className="text-base font-medium text-center">
-                            {specialty.name}
-                        </span>
-                                    </Button>
-                                </motion.div>
-                            ))}
-                        </div>
+                        ))}
                     </div>
                 </div>
+            </div>
 
+            {error && (
+                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded">
+                    <p>{error}</p>
+                </div>
+            )}
 
-                {error && (
-                    <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded">
-                        <p>{error}</p>
+            {!locationAvailable && (
+                <div className="bg-blue-100 text-blue-800 p-3 mb-4 rounded">
+                    <p>⚠️ Location not available - showing all doctors</p>
+                </div>
+            )}
+
+            {loading ? (
+                <div className="flex justify-center items-center h-64">
+                    <div
+                        className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+                    <span className="ml-3">Loading doctors...</span>
+                </div>
+            ) : error ? (
+                <div className="text-red-500 text-center py-8">{error}</div>
+            ) : (
+                <>
+                    <div className="mb-4">
+                        {filteredDoctors.length > 0 && (
+                            <p className="text-sm text-gray-600">
+                                Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredDoctors.length)} of {filteredDoctors.length} doctors
+                                {selectedSpecialty ? ` in ${selectedSpecialty}` : ''}
+                                {state ? ` in ${state}` : ''}
+                                {district ? `, ${district}` : ''}
+                            </p>
+                        )}
                     </div>
-                )}
 
-                {!locationAvailable && (
-                    <div className="bg-blue-100 text-blue-800 p-3 mb-4 rounded">
-                        <p>⚠️ Location not available - showing all doctors</p>
-                    </div>
-                )}
-
-                {loading ? (
-                    <div className="flex justify-center items-center h-64">
-                        <div
-                            className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
-                        <span className="ml-3">Loading doctors...</span>
-                    </div>
-                ) : error ? (
-                    <div className="text-red-500 text-center py-8">{error}</div>
-                ) : (
-                    <>
-                        <div className="mb-4">
-                            {filteredDoctors.length > 0 && (
-                                <p className="text-sm text-gray-600">
-                                    Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredDoctors.length)} of {filteredDoctors.length} doctors
-                                    {selectedSpecialty ? ` in ${selectedSpecialty}` : ''}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {currentDoctors.length > 0 ? (
-                                currentDoctors.map((doctor) => (
-                                    <div key={doctor.id}
-                                         className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                                        <div className="p-6">
-                                            <div className="flex items-center space-x-4">
-                                                <div className="flex-shrink-0">
-                                                    {doctor.imageUrl ? (
-                                                        <Image
-                                                            src={doctor.imageUrl}
-                                                            alt={doctor.fullName}
-                                                            width={80}
-                                                            height={80}
-                                                            className="rounded-full object-cover"
-                                                        />
-                                                    ) : (
-                                                        <div
-                                                            className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                                                            {doctor.fullName.charAt(0)}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-lg font-semibold">{doctor.fullName}</h3>
-                                                    <p className="text-gray-600">{doctor.specialty}</p>
-                                                    {doctor.experience && (
-                                                        <p className="text-sm text-gray-500">
-                                                            {doctor.experience} years experience
-                                                        </p>
-                                                    )}
-                                                    {doctor.distance && (
-                                                        <div className="flex items-center mt-1">
-                                                            <MapPin className="w-4 h-4 text-blue-500 mr-1"/>
-                                                            <span
-                                                                className="text-xs text-blue-600">{doctor.distance} away</span>
-                                                        </div>
-                                                    )}
-                                                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {currentDoctors.length > 0 ? (
+                            currentDoctors.map((doctor) => (
+                                <div key={doctor.id}
+                                     className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                                    <div className="p-6">
+                                        <div className="flex items-center space-x-4">
+                                            <div className="flex-shrink-0">
+                                                {doctor.imageUrl ? (
+                                                    <Image
+                                                        src={doctor.imageUrl}
+                                                        alt={doctor.fullName}
+                                                        width={80}
+                                                        height={80}
+                                                        className="rounded-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div
+                                                        className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                                                        {doctor.fullName.charAt(0)}
+                                                    </div>
+                                                )}
                                             </div>
-
-                                            <div className="mt-4">
-                                                {doctor.about && (
-                                                    <p className="text-gray-700 text-sm mb-3 line-clamp-2">
-                                                        {doctor.about}
+                                            <div>
+                                                <h3 className="text-lg font-semibold">{doctor.fullName}</h3>
+                                                <p className="text-gray-600">{doctor.specialty}</p>
+                                                {doctor.experience && (
+                                                    <p className="text-sm text-gray-500">
+                                                        {doctor.experience} years experience
                                                     </p>
                                                 )}
-
-                                                {doctor.location && (
-                                                    <div className="flex items-start gap-2 mb-3">
-                                                        <MapPin size={16}
-                                                                className="text-blue-500 mt-0.5 flex-shrink-0"/>
-                                                        <p className="text-sm text-gray-600">
-                                                            {getFullLocation(doctor)}
-                                                        </p>
+                                                {doctor.distance && (
+                                                    <div className="flex items-center mt-1">
+                                                        <MapPin className="w-4 h-4 text-blue-500 mr-1"/>
+                                                        <span
+                                                            className="text-xs text-blue-600">{doctor.distance} away</span>
                                                     </div>
                                                 )}
+                                            </div>
+                                        </div>
 
-                                                {(doctor.phone || doctor.email) && (
-                                                    <div className="space-y-2 mb-4">
-                                                        {doctor.phone && (
-                                                            <div className="flex items-center gap-2">
-                                                                <Phone size={16}
-                                                                       className="text-green-500 flex-shrink-0"/>
-                                                                <a
-                                                                    href={`tel:${doctor.phone}`}
-                                                                    className="text-sm text-green-600 hover:underline"
-                                                                >
-                                                                    {doctor.phone}
-                                                                </a>
-                                                            </div>
-                                                        )}
-                                                        {doctor.email && (
-                                                            <div className="flex items-center gap-2">
-                                                                <Mail size={16}
-                                                                      className="text-purple-500 flex-shrink-0"/>
-                                                                <a
-                                                                    href={`mailto:${doctor.email}`}
-                                                                    className="text-sm text-purple-600 hover:underline"
-                                                                >
-                                                                    {doctor.email}
-                                                                </a>
-                                                            </div>
-                                                        )}
+                                        <div className="mt-4">
+                                            {doctor.about && (
+                                                <p className="text-gray-700 text-sm mb-3 line-clamp-2">
+                                                    {doctor.about}
+                                                </p>
+                                            )}
 
-                                                        {doctor.ayushmanCardAvailable && (
-                                                            <div className="flex items-center gap-2">
-                                                            <span className="text-green-600 font-medium text-sm">
-                                                                ✅ Ayushman Card Accepted
-                                                            </span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
+                                            {doctor.location && (
+                                                <div className="flex items-start gap-2 mb-3">
+                                                    <MapPin size={16}
+                                                            className="text-blue-500 mt-0.5 flex-shrink-0"/>
+                                                    <p className="text-sm text-gray-600">
+                                                        {getFullLocation(doctor)}
+                                                    </p>
+                                                </div>
+                                            )}
 
-                                                <div className="flex justify-between items-center mt-4">
-                                                    {doctor.consultationFees ? (
-                                                        <span className="text-primary-600 font-medium">
-                                                        ₹{doctor.consultationFees} consultation fee
-                                                    </span>
-                                                    ) : (
-                                                        <span className="text-gray-500">Fee not specified</span>
+                                            {(doctor.phone || doctor.email) && (
+                                                <div className="space-y-2 mb-4">
+                                                    {doctor.phone && (
+                                                        <div className="flex items-center gap-2">
+                                                            <Phone size={16}
+                                                                   className="text-green-500 flex-shrink-0"/>
+                                                            <a
+                                                                href={`tel:${doctor.phone}`}
+                                                                className="text-sm text-green-600 hover:underline"
+                                                            >
+                                                                {doctor.phone}
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                    {doctor.email && (
+                                                        <div className="flex items-center gap-2">
+                                                            <Mail size={16}
+                                                                  className="text-purple-500 flex-shrink-0"/>
+                                                            <a
+                                                                href={`mailto:${doctor.email}`}
+                                                                className="text-sm text-purple-600 hover:underline"
+                                                            >
+                                                                {doctor.email}
+                                                            </a>
+                                                        </div>
                                                     )}
 
-                                                    <Link
-                                                        href={`/doctors/${doctor.id}`}
-                                                        className="px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors"
-                                                    >
-                                                        View Profile
-                                                    </Link>
+                                                    {doctor.ayushmanCardAvailable && (
+                                                        <div className="flex items-center gap-2">
+                                                        <span className="text-green-600 font-medium text-sm">
+                                                            ✅ Ayushman Card Accepted
+                                                        </span>
+                                                        </div>
+                                                    )}
                                                 </div>
+                                            )}
+
+                                            <div className="flex justify-between items-center mt-4">
+                                                {doctor.consultationFees ? (
+                                                    <span className="text-primary-600 font-medium">
+                                                        ₹{doctor.consultationFees} consultation fee
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-gray-500">Fee not specified</span>
+                                                )}
+
+                                                <Link
+                                                    href={`/doctors/${doctor.id}`}
+                                                    className="px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors"
+                                                >
+                                                    View Profile
+                                                </Link>
                                             </div>
                                         </div>
                                     </div>
-                                ))
-                            ) : (
-                                <div className="col-span-full text-center py-12">
-                                    <p className="text-gray-500 text-lg">
-                                        No doctors found {searchQuery ? `matching "${searchQuery}"` : ''}
-                                        {selectedSpecialty ? ` in ${selectedSpecialty}` : ''}
-                                    </p>
                                 </div>
-                            )}
-                        </div>
-
-                        {/* Pagination */}
-                        {filteredDoctors.length > itemsPerPage && (
-                            <div className="flex flex-col md:flex-row justify-between items-center gap-4 mt-8">
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-sm text-gray-600">Items per page:</span>
-                                    <Select
-                                        value={itemsPerPage.toString()}
-                                        onValueChange={(value) => {
-                                            setItemsPerPage(Number(value))
-                                            setCurrentPage(1)
-                                        }}
-                                    >
-                                        <SelectTrigger className="w-20 bg-white border border-gray-200">
-                                            <SelectValue placeholder={itemsPerPage}/>
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-white border border-gray-200">
-                                            <SelectItem value="6">6</SelectItem>
-                                            <SelectItem value="12">12</SelectItem>
-                                            <SelectItem value="18">18</SelectItem>
-                                            <SelectItem value="24">24</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="flex space-x-2">
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                                        disabled={currentPage === 1}
-                                    >
-                                        Previous
-                                    </Button>
-
-                                    {Array.from({length: Math.min(5, totalPages)}, (_, i) => {
-                                        let pageNum
-                                        if (totalPages <= 5) {
-                                            pageNum = i + 1
-                                        } else if (currentPage <= 3) {
-                                            pageNum = i + 1
-                                        } else if (currentPage >= totalPages - 2) {
-                                            pageNum = totalPages - 4 + i
-                                        } else {
-                                            pageNum = currentPage - 2 + i
-                                        }
-
-                                        return (
-                                            <Button
-                                                key={pageNum}
-                                                variant={currentPage === pageNum ? "default" : "outline"}
-                                                onClick={() => setCurrentPage(pageNum)}
-                                            >
-                                                {pageNum}
-                                            </Button>
-                                        )
-                                    })}
-
-                                    {totalPages > 5 && currentPage < totalPages - 2 && (
-                                        <span className="px-3 py-1 flex items-center">...</span>
-                                    )}
-
-                                    {totalPages > 5 && currentPage < totalPages - 2 && (
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => setCurrentPage(totalPages)}
-                                        >
-                                            {totalPages}
-                                        </Button>
-                                    )}
-
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                                        disabled={currentPage === totalPages}
-                                    >
-                                        Next
-                                    </Button>
-                                </div>
+                            ))
+                        ) : (
+                            <div className="col-span-full text-center py-12">
+                                <p className="text-gray-500 text-lg">
+                                    No doctors found {searchQuery ? `matching "${searchQuery}"` : ''}
+                                    {selectedSpecialty ? ` in ${selectedSpecialty}` : ''}
+                                    {state ? ` in ${state}` : ''}
+                                    {district ? `, ${district}` : ''}
+                                </p>
                             </div>
                         )}
-                    </>
-                )}
-            </div>
-        )
-    }
+                    </div>
+
+                    {/* Pagination */}
+                    {filteredDoctors.length > itemsPerPage && (
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mt-8">
+                            <div className="flex items-center space-x-2">
+                                <span className="text-sm text-gray-600">Items per page:</span>
+                                <Select
+                                    value={itemsPerPage.toString()}
+                                    onValueChange={(value) => {
+                                        setItemsPerPage(Number(value))
+                                        setCurrentPage(1)
+                                    }}
+                                >
+                                    <SelectTrigger className="w-20 bg-white border border-gray-200">
+                                        <SelectValue placeholder={itemsPerPage}/>
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white border border-gray-200">
+                                        <SelectItem value="6">6</SelectItem>
+                                        <SelectItem value="12">12</SelectItem>
+                                        <SelectItem value="18">18</SelectItem>
+                                        <SelectItem value="24">24</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="flex space-x-2">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                    disabled={currentPage === 1}
+                                >
+                                    Previous
+                                </Button>
+
+                                {Array.from({length: Math.min(5, totalPages)}, (_, i) => {
+                                    let pageNum
+                                    if (totalPages <= 5) {
+                                        pageNum = i + 1
+                                    } else if (currentPage <= 3) {
+                                        pageNum = i + 1
+                                    } else if (currentPage >= totalPages - 2) {
+                                        pageNum = totalPages - 4 + i
+                                    } else {
+                                        pageNum = currentPage - 2 + i
+                                    }
+
+                                    return (
+                                        <Button
+                                            key={pageNum}
+                                            variant={currentPage === pageNum ? "default" : "outline"}
+                                            onClick={() => setCurrentPage(pageNum)}
+                                        >
+                                            {pageNum}
+                                        </Button>
+                                    )
+                                })}
+
+                                {totalPages > 5 && currentPage < totalPages - 2 && (
+                                    <span className="px-3 py-1 flex items-center">...</span>
+                                )}
+
+                                {totalPages > 5 && currentPage < totalPages - 2 && (
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setCurrentPage(totalPages)}
+                                    >
+                                        {totalPages}
+                                    </Button>
+                                )}
+
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    Next
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
+        </div>
+    )
+}

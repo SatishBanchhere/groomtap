@@ -1,4 +1,4 @@
-// app/labs/page.tsx (Server Component)
+// app/labs/layout.tsx (Server Component)
 import { Metadata } from 'next';
 import SearchLayout from './SearchLayout';
 
