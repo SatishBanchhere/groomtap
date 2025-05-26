@@ -1,51 +1,95 @@
 import { ReactNode } from 'react';
 import { Metadata } from 'next';
-import { getHospitalById, getDoctorsByHospital } from '@/lib/hospitals'; // Implement this
+import { getHospitalById, getDoctorsByHospital } from '@/lib/hospitals';
 
 type Props = {
     params: { id: string };
+    searchParams: { [key: string]: string | string[] | undefined };
     children: ReactNode;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const hospital = await getHospitalById(params.id);
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+    let hospital;
+    let specialties: string[] = [];
+    const serviceType = searchParams?.service ?
+        (Array.isArray(searchParams.service) ? searchParams.service[0] : searchParams.service) :
+        undefined;
 
-    const specialties = (await getDoctorsByHospital(params.id)) // Implement this
-        .map(d => d.specialty)
-        .filter((v, i, a) => a.indexOf(v) === i) // Unique values
-        .join(', ');
+    try {
+        hospital = await getHospitalById(params.id);
+
+        if (hospital) {
+            const doctors = await getDoctorsByHospital(params.id);
+            specialties = [...new Set(doctors.map(d => d.specialty))]; // Unique specialties
+        }
+    } catch (error) {
+        console.error('Error fetching hospital data:', error);
+        return notFoundMetadata();
+    }
+
+    if (!hospital) {
+        return notFoundMetadata();
+    }
+
+    const { fullName, location, about, ayushmanCardAvailable, phone, imageUrl } = hospital;
+    const locationString = `${location?.address || ''}${location?.city ? `, ${location.city}` : ''}`;
+    const serviceTypeString = serviceType ? `Specializing in ${serviceType} services` : '';
+    const specialtiesString = specialties.slice(0, 5).join(', ');
+
+    // Base metadata
+    const baseMetadata: Metadata = {
+        title: `${fullName} - ${serviceType || 'Hospital'} in ${location?.city || ''} | DocZappoint`,
+        description: `${fullName} ${serviceTypeString} located at ${locationString}. ${about || ''}`,
+        keywords: [
+            fullName,
+            serviceType ? `${serviceType} hospital` : 'Hospital',
+            location?.city ? `Hospitals in ${location.city}` : 'Hospital',
+            location?.city ? `Best ${serviceType || 'hospital'} in ${location.city}` : 'Hospital',
+            ...specialties,
+            ...(ayushmanCardAvailable ? ['Ayushman Bharat hospital'] : []),
+            ...(phone ? [phone] : []),
+        ].filter(Boolean),
+        alternates: {
+            canonical: serviceType
+                ? `https://doczappoint.com/hospitals/${params.id}?service=${encodeURIComponent(serviceType)}`
+                : `https://doczappoint.com/hospitals/${params.id}`,
+        },
+    };
+
+    // Open Graph metadata
+    const openGraphMetadata: Metadata['openGraph'] = {
+        ...baseMetadata,
+        type: 'website',
+        images: imageUrl ? [{
+            url: imageUrl,
+            width: 800,
+            height: 600,
+            alt: fullName,
+        }] : undefined,
+    };
+
+    // Twitter metadata
+    const twitterMetadata: Metadata['twitter'] = {
+        card: 'summary_large_image',
+        title: baseMetadata.title as string,
+        description: baseMetadata.description as string,
+        images: imageUrl ? [imageUrl] : undefined,
+    };
 
     return {
-        title: `${hospital.fullName} - ${hospital.location.city} | DocZappoint`,
-        description: `${hospital.fullName} located at ${hospital.location.address}, ${hospital.location.city}. ${hospital.about || ''}`,
-        keywords: [
-            hospital.fullName,
-            `Hospitals in ${hospital.location.city}`,
-            `${hospital.fullName} ${hospital.location.city}`,
-            `Best hospital in ${hospital.location.city}`,
-            specialties,
-            hospital.ayushmanCardAvailable ? 'Ayushman Bharat hospital' : '',
-            hospital.phone,
-        ],
-        openGraph: {
-            title: `${hospital.fullName} - ${hospital.location.city}`,
-            description: `${hospital.fullName} located at ${hospital.location.address}, ${hospital.location.city}`,
-            url: `https://yourwebsite.com/hospitals/${params.id}`,
-            type: 'website',
-            images: hospital.imageUrl ? [
-                {
-                    url: hospital.imageUrl,
-                    width: 800,
-                    height: 600,
-                    alt: hospital.fullName,
-                }
-            ] : undefined,
-        },
-        twitter: {
-            card: 'summary_large_image',
-            title: `${hospital.fullName} - ${hospital.location.city}`,
-            description: `${hospital.fullName} located at ${hospital.location.address}, ${hospital.location.city}`,
-            images: hospital.imageUrl ? [hospital.imageUrl] : undefined,
+        ...baseMetadata,
+        openGraph: openGraphMetadata,
+        twitter: twitterMetadata,
+    };
+}
+
+function notFoundMetadata(): Metadata {
+    return {
+        title: 'Hospital Not Found | DocZappoint',
+        description: 'The hospital you are looking for could not be found. Browse our list of partner hospitals.',
+        robots: {
+            index: false,
+            follow: true,
         },
     };
 }
