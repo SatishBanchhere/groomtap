@@ -12,7 +12,7 @@ import { Fragment } from 'react';
 import PageHeader from '@/components/shared/page-header';
 import { Metadata } from 'next';
 import {DoctorSEOTags, DoctorStructuredData} from "@/components/seo/DoctorSEOTags";
-
+import DoctorNotFound from "@/components/DoctorNotFound";
 
 type TimeSlot = {
   start: string;
@@ -121,6 +121,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
   });
   const [error, setError] = useState<string>("");
   const [showMobileBookingPanel, setShowMobileBookingPanel] = useState(false);
+  const [doctorNotFound, setDoctorNotFound] = useState<boolean>(false);
   //@ts-ignore
   const {id} = useParams();
 
@@ -138,8 +139,12 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setDoctor({ id: docSnap.id, ...docSnap.data() } as Doctor);
+        setDoctorNotFound(false);
       }
-
+      else{
+        setDoctorNotFound(true);
+        console.log("Doctor not found.");
+      }
       const reviewsRef = collection(db, `doctors/${id}/reviews`);
       const querySnapshot = await getDocs(reviewsRef);
       const reviewsData = querySnapshot.docs.map(doc => ({
@@ -364,12 +369,8 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
     );
   }
 
-  if (!doctor) {
-    return (
-        <div className="flex justify-center items-center min-h-screen">
-          <div className="text-xl text-gray-600">Doctor not found</div>
-        </div>
-    );
+  if (!doctor || doctorNotFound) {
+    return <DoctorNotFound />;
   }
 
   return (
@@ -409,14 +410,14 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                     {doctor.imageUrl ? (
                         <Image
                             src={doctor.imageUrl}
-                            alt={`Profile photo of Dr. ${doctor.fullName}`}
+                            alt={`Profile photo of Dr. ${doctor?.fullName}`}
                             fill
                             className="rounded-lg object-cover"
                         />
                     ) : (
                         <div className="w-full h-full rounded-lg bg-gray-200 flex items-center justify-center">
                       <span className="text-2xl font-bold text-gray-400">
-                        {doctor.fullName.charAt(0)}
+                        {doctor?.fullName.charAt(0)}
                       </span>
                         </div>
                     )}
@@ -424,7 +425,7 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                   <div className="flex-1">
                     <div className="flex flex-col md:flex-row md:justify-between md:items-start">
                       <div>
-                        <h1 className="text-2xl font-bold">{doctor.fullName}</h1>
+                        <h1 className="text-2xl font-bold">{doctor?.fullName}</h1>
                         <p className="text-gray-600 mb-2">{doctor.specialty}</p>
                         <p className="text-gray-500 text-sm mb-4">{doctor.qualifications}</p>
                       </div>

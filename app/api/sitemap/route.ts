@@ -181,7 +181,7 @@ export async function GET() {
             }
 
             console.log(`Generated ${combinationCount} state-district-test combinations`);
-        } catch (error) {
+        } catch (error) {``
             console.error("Error processing doctor tests:", error);
         }
 
