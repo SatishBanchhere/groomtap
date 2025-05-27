@@ -28,11 +28,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         };
     }
 
+    // Create base title and description variations
+    const nameTitle = `Dr. ${doctor.fullName} | DocZappoint`;
+    const specialtyTitle = `Dr. ${doctor.fullName} - ${doctor.specialty} | DocZappoint`;
+
+    const nameDescription = `Book appointments with Dr. ${doctor.fullName} in ${doctor.location.city}. ${doctor.about || ''}`;
+    const specialtyDescription = `Book appointments with Dr. ${doctor.fullName}, ${doctor.specialty} in ${doctor.location.city}. ${doctor.about || ''}`;
+
     return {
-        title: `Dr. ${doctor.fullName} - ${doctor.specialty} | DocZappoint`,
-        description: `Book appointments with Dr. ${doctor.fullName}, ${doctor.specialty} in ${doctor.location.city}. ${doctor.about || ''}`,
+        // Use both title variations with pipe separator
+        title: `${nameTitle} | ${specialtyTitle.replace('DocZappoint', '')}`,
+        description: `${nameDescription} ${specialtyDescription}`,
         keywords: [
             `Dr. ${doctor.fullName}`,
+            `${doctor.fullName} doctor`,
+            `${doctor.fullName} ${doctor.location.city}`,
             `${doctor.specialty} in ${doctor.location.city}`,
             `${doctor.fullName} appointment`,
             `Book ${doctor.specialty} online`,
@@ -40,8 +50,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             doctor.qualifications,
         ],
         openGraph: {
-            title: `Dr. ${doctor.fullName} - ${doctor.specialty}`,
-            description: `Book appointments with Dr. ${doctor.fullName}, ${doctor.specialty} in ${doctor.location.city}`,
+            // Use both title variations
+            title: `${nameTitle} | ${specialtyTitle.replace('DocZappoint', '')}`,
+            description: `${nameDescription} ${specialtyDescription}`,
             url: `https://doczappoint.com/doctors/${params.id}`,
             type: 'profile',
             // @ts-ignore - TypeScript doesn't recognize the profile property by default
@@ -61,13 +72,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         },
         twitter: {
             card: 'summary',
-            title: `Dr. ${doctor.fullName} - ${doctor.specialty}`,
-            description: `Book appointments with Dr. ${doctor.fullName}, ${doctor.specialty} in ${doctor.location.city}`,
+            // Use both title variations
+            title: `${nameTitle} | ${specialtyTitle.replace('DocZappoint', '')}`,
+            description: `${nameDescription} ${specialtyDescription}`,
             images: doctor.imageUrl ? [doctor.imageUrl] : undefined,
         },
+        // Add alternate titles for SEO
+        alternates: {
+            canonical: `https://doczappoint.com/doctors/${params.id}`,
+        },
+        // Additional metadata to help with both variations
+        metadataBase: new URL('https://doczappoint.com'),
+        other: {
+            'name:title': nameTitle,
+            'specialty:title': specialtyTitle,
+        }
     };
 }
-
 export default function DoctorLayout({ children }: { children: ReactNode }) {
     return (
         <div className="bg-[#f8f5ef] min-h-screen">
