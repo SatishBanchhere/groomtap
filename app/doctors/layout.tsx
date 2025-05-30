@@ -1,5 +1,5 @@
+import type { Metadata } from 'next'
 import { Suspense } from "react"
-import Head from "next/head";
 
 interface SearchLayoutProps {
     children: React.ReactNode;
@@ -15,11 +15,21 @@ interface SearchLayoutProps {
     };
 }
 
-export default function SearchLayout({
-                                         children,
-                                         params,
-                                         searchParams,
-                                     }: SearchLayoutProps) {
+export async function generateMetadata({
+                                           params,
+                                           searchParams
+                                       }: {
+    params: {
+        state?: string;
+        district?: string;
+        specialty?: string;
+    };
+    searchParams: {
+        state?: string;
+        district?: string;
+        specialty?: string;
+    };
+}): Promise<Metadata> {
     // Get the actual values from either params or searchParams
     const state = params.state || searchParams?.state;
     const district = params.district || searchParams?.district;
@@ -33,68 +43,101 @@ export default function SearchLayout({
         ).join(' ');
     };
 
-    // Generate dynamic title and description
-    const generateMetadata = () => {
-        const formattedState = formatText(state);
-        const formattedDistrict = formatText(district);
-        const formattedSpecialty = formatText(specialty);
+    const formattedState = formatText(state);
+    const formattedDistrict = formatText(district);
+    const formattedSpecialty = formatText(specialty);
 
-        let title = 'Find Doctors Near You | Book Appointments Online';
-        let description = 'Easily find doctors near you and book appointments online with our secure platform.';
-        let keywords = 'doctors near me, book doctor appointment, online doctor booking, nearby clinics, health checkup';
+    let title = 'Find Doctors Near You | Book Appointments Online | DoczAppoint';
+    let description = 'Easily find doctors near you and book appointments online with our secure platform.';
+    let keywords = [
+        'doctors near me',
+        'book doctor appointment',
+        'online doctor booking',
+        'nearby clinics',
+        'health checkup',
+        'DoczAppoint'
+    ];
 
-        if (formattedSpecialty) {
-            title = `${formattedSpecialty} Doctors`;
-            description = `Find the best ${formattedSpecialty.toLowerCase()} specialists near you. ${description}`;
-            keywords = `${formattedSpecialty.toLowerCase()} doctor near me, ${keywords}`;
-        }
+    if (formattedSpecialty) {
+        title = `${formattedSpecialty} Doctors | Find Specialists | DoczAppoint`;
+        description = `Find the best ${formattedSpecialty.toLowerCase()} specialists near you. ${description}`;
+        keywords.unshift(`${formattedSpecialty.toLowerCase()} doctor near me`);
+    }
 
-        if (formattedState) {
-            title = `${title} in ${formattedState}`;
-            description = `${description} Serving ${formattedState}.`;
-            keywords = `${keywords}, doctors in ${formattedState.toLowerCase()}`;
-        }
+    if (formattedState) {
+        title = `${title} in ${formattedState}`;
+        description = `${description} Serving ${formattedState}.`;
+        keywords.push(`doctors in ${formattedState.toLowerCase()}`);
+    }
 
-        if (formattedDistrict) {
-            title = `${title}, ${formattedDistrict}`;
-            description = `${description} Find local doctors in ${formattedDistrict}.`;
-            keywords = `${keywords}, doctors in ${formattedDistrict.toLowerCase()}`;
-        }
+    if (formattedDistrict) {
+        title = `${title}, ${formattedDistrict}`;
+        description = `${description} Find local doctors in ${formattedDistrict}.`;
+        keywords.push(`doctors in ${formattedDistrict.toLowerCase()}`);
+    }
 
-        return { title, description, keywords };
-    };
+    // Generate canonical URL
+    const canonicalUrl = `https://doczappoint.com/doctors${
+        state ? `/${state}` : ''
+    }${district ? `/${district}` : ''}${
+        specialty ? `?specialty=${specialty}` : ''
+    }`;
 
-    const { title, description, keywords } = generateMetadata();
+    return {
+        title,
+        description,
+        keywords,
+        alternates: {
+            canonical: canonicalUrl,
+        },
+        openGraph: {
+            title,
+            description,
+            url: canonicalUrl,
+            type: 'website',
+            images: [
+                {
+                    url: 'https://doczappoint.com/images/doctors-og-image.jpg',
+                    width: 1200,
+                    height: 630,
+                    alt: 'Find Doctors on DoczAppoint',
+                },
+            ],
+            siteName: 'DoczAppoint',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: ['https://doczappoint.com/images/doctors-twitter-image.jpg'],
+            site: '@doczappoint',
+        },
+        robots: {
+            index: true,
+            follow: true,
+            nocache: false,
+            googleBot: {
+                index: true,
+                follow: true,
+                noimageindex: false,
+            }
+        },
+        themeColor: '#2563eb',
+    }
+}
 
+export default function SearchLayout({
+                                         children,
+                                     }: {
+    children: React.ReactNode
+}) {
     return (
-        <>
-            <Head>
-                <title>{title}</title>
-                <meta name="description" content={description} />
-                <meta name="keywords" content={keywords} />
-                <meta name="robots" content="index, follow" />
-                <meta property="og:title" content={title} />
-                <meta property="og:description" content={description} />
-                <meta property="og:type" content="website" />
-                <meta property="og:url" content="https://doczappoint.com/doctors" />
-
-                {/* Canonical URL - important for SEO */}
-                <link
-                    rel="canonical"
-                    href={`https://doczappoint.com/doctors${
-                        state ? `/${state}` : ''
-                    }${district ? `/${district}` : ''}${
-                        specialty ? `?specialty=${specialty}` : ''
-                    }`}
-                />
-            </Head>
-            <div className="bg-gray-50 min-h-screen">
-                <div className="container mx-auto px-4 py-8">
-                    <Suspense fallback={<div>Loading search results...</div>}>
-                        {children}
-                    </Suspense>
-                </div>
+        <div className="bg-gray-50 min-h-screen">
+            <div className="container mx-auto px-4 py-8">
+                <Suspense fallback={<div>Loading search results...</div>}>
+                    {children}
+                </Suspense>
             </div>
-        </>
+        </div>
     )
 }

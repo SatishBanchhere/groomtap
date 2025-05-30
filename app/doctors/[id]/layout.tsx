@@ -8,6 +8,8 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    console.log('generateMetadata called for doctor ID:', params.id);
+
     let doctor;
 
     try {
@@ -15,6 +17,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     } catch (error) {
         console.error('Error fetching doctor:', error);
     }
+
+    console.log('Generated metadata:', {
+        title: doctor ? `Dr. ${doctor.fullName}` : 'Doctor Not Found',
+        doctorId: params.id
+    });
+
 
     // Fallback metadata when doctor is not found
     if (!doctor) {
