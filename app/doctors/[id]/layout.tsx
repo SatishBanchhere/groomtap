@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 
     console.log('Generated metadata:', {
-        title: doctor ? `Dr. ${doctor.fullName}` : 'Doctor Not Found',
+        title: doctor ? `${doctor.fullName}` : 'Doctor Not Found',
         doctorId: params.id
     });
 
@@ -37,8 +37,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 
     // Create base title and description variations
-    const nameTitle = `Dr. ${doctor.fullName} | DocZappoint`;
-    const specialtyTitle = `Dr. ${doctor.fullName} - ${doctor.specialty} | DocZappoint`;
+    const nameTitle = `${doctor.fullName} | DocZappoint`;
+    const specialtyTitle = `${doctor.fullName} - ${doctor.specialty} | DocZappoint`;
 
     const nameDescription = `Book appointments with Dr. ${doctor.fullName} in ${doctor.location.city}. ${doctor.about || ''}`;
     const specialtyDescription = `Book appointments with Dr. ${doctor.fullName}, ${doctor.specialty} in ${doctor.location.city}. ${doctor.about || ''}`;
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title: `${nameTitle} | ${specialtyTitle.replace('DocZappoint', '')}`,
         description: `${nameDescription} ${specialtyDescription}`,
         keywords: [
-            `Dr. ${doctor.fullName}`,
+            `${doctor.fullName}`,
             `${doctor.fullName} doctor`,
             `${doctor.fullName} ${doctor.location.city}`,
             `${doctor.specialty} in ${doctor.location.city}`,
