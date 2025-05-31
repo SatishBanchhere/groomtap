@@ -11,6 +11,7 @@ import { Toaster } from "sonner";
 import TopBar from "@/components/layout/top-bar";
 import { db } from "@/lib/firebase";
 import { doc, updateDoc, increment } from "firebase/firestore";
+import RightClickBlocker from "@/components/RightClickBlocker";
 
 export default function LayoutClient({ children }: { children: React.ReactNode }) {
     const pathName = usePathname();
@@ -34,6 +35,7 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
         <AuthProvider>
             <TopBar />
             <Navbar />
+            <RightClickBlocker/>
             <main className="min-h-screen">{children}</main>
             {pathName !== "/tool" && pathName !== "/admin" && <Footer />}
             <GoToTop />
