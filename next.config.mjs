@@ -1,12 +1,3 @@
-import {id} from "date-fns/locale";
-
-let userConfig = undefined;
-try {
-  userConfig = await import('./v0-user-next.config');
-} catch (e) {
-  // ignore error
-}
-
 /** @type {import('next').NextConfig} */
 let nextConfig = {
   eslint: {
@@ -24,12 +15,11 @@ let nextConfig = {
     parallelServerCompiles: true,
   },
   async redirects() {
-
     const customRedirects = {
       '199': '/doctors/4d4hkJFfmfvqIHGHPySj',
       '178': '/doctors/VsKCMyxF6j3dyQVE19pI',
       '166': '/doctors/0tq19j8rbLchS2NR2mH9',
-    }
+    };
 
     const idRedirects = Object.entries(customRedirects).map(([id, destination]) => ({
       source: `/viewdoctors/${id}`,
@@ -37,9 +27,13 @@ let nextConfig = {
       permanent: true,
     }));
 
-
     return [
-        ...idRedirects,
+      ...idRedirects,
+      {
+        source: '/viewdoctors/:id',
+        destination: '/',
+        permanent: true,
+      },
       {
         source: '/viewdoctor/:id',
         destination: '/',
@@ -69,9 +63,6 @@ let nextConfig = {
   },
 };
 
-// Merge before exporting
-nextConfig = mergeConfig(nextConfig, userConfig);
-
 function mergeConfig(nextConfig, userConfig) {
   if (!userConfig) return nextConfig;
 
@@ -95,4 +86,15 @@ function mergeConfig(nextConfig, userConfig) {
   return merged;
 }
 
-export default nextConfig;
+// Use an async function to load userConfig dynamically
+const loadConfig = async () => {
+  let userConfig;
+  try {
+    userConfig = await import('./v0-user-next.config');
+  } catch (e) {
+    // Ignore error
+  }
+  return mergeConfig(nextConfig, userConfig);
+};
+
+export default loadConfig();
