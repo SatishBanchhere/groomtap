@@ -8,7 +8,7 @@ export default function DoctorNotFound() {
             <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
                 <div className="mx-auto w-48 h-48 relative mb-6">
                     <Image
-                        src="/doctorNotFound.jpg" // You should add this SVG to your public folder
+                        src="/doctorNotFound.png" // You should add this SVG to your public folder
                         alt="Doctor not found"
                         fill
                         className="object-contain"
