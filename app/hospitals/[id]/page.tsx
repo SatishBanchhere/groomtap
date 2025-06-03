@@ -72,14 +72,27 @@ export default function HospitalDetailPage({ params }: { params: { id: string } 
           } as Hospital)
 
           // Fetch doctors associated with this hospital
-          const doctorsRef = collection(db, "doctors")
-          const doctorsQuery = query(doctorsRef, where("hospitalUid", "==", id))
-          const doctorsSnapshot = await getDocs(doctorsQuery)
-          const doctorsData = doctorsSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          })) as Doctor[]
-          setDoctors(doctorsData)
+          const doctorsRef = collection(db, "doctors");
+          const queries = [
+            query(doctorsRef, where("hospitalUid", "==", id)),
+            query(doctorsRef, where("hospitalId", "==", id)),
+            query(doctorsRef, where("createdBy", "==", id))
+          ];
+
+// Execute all queries in parallel
+          const snapshots = await Promise.all(queries.map(q => getDocs(q)));
+
+// Combine and deduplicate results
+          const doctorsData = snapshots.flatMap(snapshot =>
+              snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+              }))
+          ).filter((doctor, index, self) =>
+              index === self.findIndex(d => d.id === doctor.id)
+          ) as Doctor[];
+
+          setDoctors(doctorsData);
         }
 
         // Fetch reviews

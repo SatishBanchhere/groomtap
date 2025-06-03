@@ -18,13 +18,13 @@ export async function GET() {
                 name: "lab_form",
                 path: "labs",
                 changefreq: "monthly",
-                priority: "0.9",
+                priority: "0.7",
             },
             {
                 name: "hospitals",
                 path: "hospitals",
                 changefreq: "weekly",
-                priority: "0.9",
+                priority: "0.7",
             },
             {
                 name: "specialties",
@@ -48,10 +48,10 @@ export async function GET() {
 
         // Add static pages
         const staticPages = [
-            { path: "", changefreq: "daily", priority: "1.0" },
-            { path: "about", changefreq: "monthly", priority: "0.8" },
-            { path: "contact", changefreq: "monthly", priority: "0.8" },
-            { path: "emergency", changefreq: "daily", priority: "0.9" },
+            { path: "", changefreq: "daily", priority: "0.7" },
+            { path: "about", changefreq: "monthly", priority: "0.7" },
+            { path: "contact", changefreq: "monthly", priority: "0.7" },
+            { path: "emergency", changefreq: "daily", priority: "0.7" },
         ];
 
         staticPages.forEach(page => addUrl(page.path, page.changefreq, page.priority));
@@ -78,8 +78,8 @@ export async function GET() {
             specialtiesSnap.forEach(doc => {
                 const specialtyName = doc.data()?.name;
                 if (specialtyName) {
-                    addUrl(`doctors?speciality=${slugify(specialtyName)}`, "weekly", "0.9");
-                    addUrl(`hospitals?q=&service=${slugify(specialtyName)}`, "weekly", "0.9");
+                    addUrl(`doctors?speciality=${slugify(specialtyName)}`, "weekly", "1.0");
+                    addUrl(`hospitals?q=&service=${slugify(specialtyName)}`, "weekly", "0.7");
                 }
             });
         } catch (error) {
@@ -174,7 +174,7 @@ export async function GET() {
                         addUrl(
                             `doctors?state=${slugify(stateName)}&district=${slugify(district)}&test=${slugify(specialty)}`,
                             "weekly",
-                            "0.7"
+                            "1.0"
                         );
                     }
                 }

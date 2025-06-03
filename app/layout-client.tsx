@@ -35,7 +35,7 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
         <AuthProvider>
             <TopBar />
             <Navbar />
-            <RightClickBlocker/>
+            {/*<RightClickBlocker/>*/}
             <main className="min-h-screen">{children}</main>
             {pathName !== "/tool" && pathName !== "/admin" && <Footer />}
             <GoToTop />
