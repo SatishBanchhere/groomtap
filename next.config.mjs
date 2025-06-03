@@ -1,3 +1,5 @@
+import {id} from "date-fns/locale";
+
 let userConfig = undefined;
 try {
   userConfig = await import('./v0-user-next.config');
@@ -22,7 +24,22 @@ let nextConfig = {
     parallelServerCompiles: true,
   },
   async redirects() {
+
+    const customRedirects = {
+      '199': '/doctors/4d4hkJFfmfvqIHGHPySj',
+      '178': '/doctors/VsKCMyxF6j3dyQVE19pI',
+      '166': '/doctors/0tq19j8rbLchS2NR2mH9',
+    }
+
+    const idRedirects = Object.entries(customRedirects).map(([id, destination]) => ({
+      source: `/viewdoctors/${id}`,
+      destination,
+      permanent: true,
+    }));
+
+
     return [
+        ...idRedirects,
       {
         source: '/viewdoctor/:id',
         destination: '/',
