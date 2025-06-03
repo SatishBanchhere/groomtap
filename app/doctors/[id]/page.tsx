@@ -407,20 +407,21 @@ export default function DoctorDetailPage({ params }: { params: { id: string } })
                 {/* Doctor Profile - Visible on both mobile and desktop */}
                 <div className="flex flex-col md:flex-row gap-6 mb-6">
                   <div className="relative w-full md:w-32 h-32">
-                    {doctor.imageUrl ? (
-                        <Image
-                            src={doctor.imageUrl}
-                            alt={`Profile photo of Dr. ${doctor?.fullName}`}
-                            fill
-                            className="rounded-lg object-cover"
-                        />
-                    ) : (
-                        <div className="w-full h-full rounded-lg bg-gray-200 flex items-center justify-center">
-                      <span className="text-2xl font-bold text-gray-400">
-                        {doctor?.fullName.charAt(0)}
-                      </span>
-                        </div>
-                    )}
+                    <Image
+                        src={doctor.imageUrl || "/placeholder-doctor.png"}
+                        alt={`Profile photo of Dr. ${doctor?.fullName}`}
+                        fill
+                        className="rounded-lg object-cover"
+                    />
+                    {/*{doctor.imageUrl ? (*/}
+
+                    {/*) : (*/}
+                    {/*    <div className="w-full h-full rounded-lg bg-gray-200 flex items-center justify-center">*/}
+                    {/*  <span className="text-2xl font-bold text-gray-400">*/}
+                    {/*    {doctor?.fullName.charAt(0)}*/}
+                    {/*  </span>*/}
+                    {/*    </div>*/}
+                    {/*)}*/}
                   </div>
                   <div className="flex-1">
                     <div className="flex flex-col md:flex-row md:justify-between md:items-start">

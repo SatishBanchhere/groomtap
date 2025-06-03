@@ -139,7 +139,7 @@ export default function SpecialtyDetailPage({ params }: { params: { id: string }
                   <div className="flex items-start gap-4">
                     <div className="relative h-20 w-20 flex-shrink-0">
                       <Image
-                          src={doctor.imageUrl || "/placeholder-doctor.jpg"}
+                          src={doctor.imageUrl || "/placeholder-doctor.png"}
                           alt={doctor.fullName || "Doctor Name"}
                           fill
                           className="object-cover rounded-full"
