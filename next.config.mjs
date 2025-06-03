@@ -22,7 +22,7 @@ let nextConfig = {
     };
 
     const idRedirects = Object.entries(customRedirects).map(([id, destination]) => ({
-      source: `/viewdoctors/${id}`,
+      source: `/viewdoctor/${id}`,
       destination,
       permanent: true,
     }));
@@ -30,7 +30,7 @@ let nextConfig = {
     return [
       ...idRedirects,
       {
-        source: '/viewdoctors/:id',
+        source: '/viewdoctor/:id',
         destination: '/',
         permanent: true,
       },
