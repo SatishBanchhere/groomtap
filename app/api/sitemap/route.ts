@@ -172,7 +172,7 @@ export async function GET() {
 
                 for (const district of districts) {
                     addUrl(`${slugify(stateName)}/${slugify(district)}/doctors`, "weekly", "1.0");
-                    addUrl(`${slugify(stateName)}/${slugify(district)}/doctors?ayushman=true`, "weekly", "1.0");
+                    addUrl(`${slugify(stateName)}/${slugify(district)}/ayushman/doctors`, "weekly", "1.0");
                     for (const specialty of specialties) {
                         combinationCount++;
                         // addUrl(
@@ -180,7 +180,7 @@ export async function GET() {
                         //     "weekly",
                         //     "1.0"
                         // );
-                        addUrl(`${slugify(stateName)}/${slugify(district)}/doctors?ayushman=true&test=${slugify(specialty)}`, "weekly", "1.0");
+                        addUrl(`${slugify(stateName)}/${slugify(district)}/ayushman/doctors?test=${slugify(specialty)}`, "weekly", "1.0");
                         addUrl(`${slugify(stateName)}/${slugify(district)}/doctors?&test=${slugify(specialty)}`, "weekly", "1.0");
 
                     }

@@ -9,13 +9,13 @@ export async function generateMetadata({
     const formattedState = await params.state.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
     const formattedDistrict = await params.district.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 
-    const ayushmanAvailable = false
+    const ayushmanAvailable = true
 
     // Create base metadata
     const metadata: Metadata = {
         title: `Top Doctors in ${formattedDistrict}, ${formattedState} | Book Appointments Near You | DoczAppoint`,
         description: `Find top-rated doctors in ${formattedDistrict}, ${formattedState}. ` +
-            `${ayushmanAvailable ? 'Ayushman Bharat card accepted. ' : ''}` +
+            `${ayushmanAvailable ? 'Ayushman card accepted. ' : ''}` +
             `Book appointments with general physicians, specialists, and clinics near you through DoczAppoint.`,
         keywords: [
             `Doctors in ${formattedDistrict}`,
