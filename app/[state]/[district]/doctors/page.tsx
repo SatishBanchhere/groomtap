@@ -1,7 +1,7 @@
 'use client'
 
 import {useEffect, useState, useCallback} from 'react'
-import {useRouter, useSearchParams} from 'next/navigation'
+import {useParams, useRouter, useSearchParams} from 'next/navigation'
 import Link from 'next/link'
 import {ArrowLeft, MapPin, Phone, Mail} from 'lucide-react'
 import Image from 'next/image'
@@ -71,7 +71,7 @@ export default function DoctorSearchPage() {
     // const state = searchParams.get("state")?.split('-')?.join(' ')
     // const district = searchParams.get("district")?.split('-')?.join(' ')
 
-
+    const params = useParams()
     const district1 = Array.isArray(params.district) ? params.district[0] : params.district
     const state1 = Array.isArray(params.state) ? params.state[0] : params.state
 
