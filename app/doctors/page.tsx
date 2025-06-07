@@ -71,6 +71,7 @@ export default function DoctorSearchPage() {
     const state = searchParams.get("state")?.split('-')?.join(' ')
     const district = searchParams.get("district")?.split('-')?.join(' ')
     const specialty = searchParams.get("specialty")?.split('-').join(' ')
+    const ayushman = searchParams.get("ayushman")?.split('-').join(' ')
 
     useEffect(() => {
         const specialityFromUrl = searchParams.get('speciality')
@@ -271,6 +272,12 @@ export default function DoctorSearchPage() {
                 if (district) {
                     filters.push(where('location.district', '==', district));
                 }
+
+
+                if(ayushman === "true"){
+                    filters.push(where('ayushmanCardAvailable', '==', 'true'))
+                }
+
 
                 const q = query(doctorsRef, ...filters, orderBy('createdAt', 'desc'));
                 const snapshot = await getDocs(q);

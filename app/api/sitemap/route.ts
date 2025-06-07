@@ -98,7 +98,8 @@ export async function GET() {
 
                 districts.forEach((districtName: string) => {
                     addUrl(`${slugify(stateName)}/${slugify(districtName)}`, "weekly", "0.8");
-                    addUrl(`${slugify(stateName)}/${slugify(districtName)}/doctors`, "weekly", "1.0");
+                    // addUrl(`${slugify(stateName)}/${slugify(districtName)}/doctors`, "weekly", "1.0");
+                    // addUrl(`${slugify(stateName)}/${slugify(districtName)}/doctors?ayushman=true`, "weekly", "1.0");
                 });
             }
         } catch (error) {
@@ -170,13 +171,18 @@ export async function GET() {
                 // if (!stateName) continue;
 
                 for (const district of districts) {
+                    addUrl(`${slugify(stateName)}/${slugify(district)}/doctors`, "weekly", "1.0");
+                    addUrl(`${slugify(stateName)}/${slugify(district)}/doctors?ayushman=true`, "weekly", "1.0");
                     for (const specialty of specialties) {
                         combinationCount++;
-                        addUrl(
-                            `doctors?state=${slugify(stateName)}&district=${slugify(district)}&test=${slugify(specialty)}`,
-                            "weekly",
-                            "1.0"
-                        );
+                        // addUrl(
+                        //     `doctors?state=${slugify(stateName)}&district=${slugify(district)}&test=${slugify(specialty)}`,
+                        //     "weekly",
+                        //     "1.0"
+                        // );
+                        addUrl(`${slugify(stateName)}/${slugify(district)}/doctors?ayushman=true&test=${slugify(specialty)}`, "weekly", "1.0");
+                        addUrl(`${slugify(stateName)}/${slugify(district)}/doctors?&test=${slugify(specialty)}`, "weekly", "1.0");
+
                     }
                 }
             }
