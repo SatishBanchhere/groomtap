@@ -98,6 +98,7 @@ export async function GET() {
 
                 districts.forEach((districtName: string) => {
                     addUrl(`${slugify(stateName)}/${slugify(districtName)}`, "weekly", "0.8");
+                    addUrl(`${slugify(stateName)}/${slugify(districtName)}/doctors`, "weekly", "1.0");
                 });
             }
         } catch (error) {
