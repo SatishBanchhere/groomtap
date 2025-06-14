@@ -1,104 +1,87 @@
-import Head from 'next/head';
-import { Lab, Test } from '@/types/lab'; // Define your types
+import { Metadata } from 'next';
+import { Lab, Test } from '@/types'; // Define these types based on your data structure
 
-interface LabSEOTagsProps {
-    lab: Lab;
-    tests: Test[];
-}
-
-export const LabSEOTags = ({ lab, tests }: LabSEOTagsProps) => {
-    const pageUrl = `https://yourwebsite.com/labs/${lab.id}`;
-    const pageTitle = `${lab.fullName} - Lab Tests in ${lab.location.address} | DocZappoint`;
-    const pageDescription = `${lab.fullName} located at ${lab.location.address}. Book lab tests including ${tests.slice(0, 3).map(t => t.name).join(', ')} and more.`;
-    const testNames = tests.map(t => t.name).join(', ');
-
-    return (
-        <Head>
-            {/* Primary Meta Tags */}
-            <title>{pageTitle}</title>
-            <meta name="title" content={pageTitle} />
-            <meta name="description" content={pageDescription} />
-            <meta name="keywords" content={getKeywords(lab, testNames)} />
-            <link rel="canonical" href={pageUrl} />
-
-            {/* Open Graph / Facebook */}
-            <meta property="og:type" content="website" />
-            <meta property="og:url" content={pageUrl} />
-            <meta property="og:title" content={pageTitle} />
-            <meta property="og:description" content={pageDescription} />
-            {lab.imageUrl && <meta property="og:image" content={lab.imageUrl} />}
-
-            {/* Twitter */}
-            <meta property="twitter:card" content="summary_large_image" />
-            <meta property="twitter:url" content={pageUrl} />
-            <meta property="twitter:title" content={pageTitle} />
-            <meta property="twitter:description" content={pageDescription} />
-            {lab.imageUrl && <meta property="twitter:image" content={lab.imageUrl} />}
-        </Head>
-    );
-};
-
-// Helper function to generate keywords
-const getKeywords = (lab: Lab, testNames: string) => {
-    return [
-        lab.fullName,
-        `Lab in ${lab.location.address}`,
-        `Book lab tests in ${lab.location.address}`,
-        `Home collection lab tests`,
-        testNames,
-        lab.whatsapp ? `Lab contact ${lab.whatsapp}` : '',
+export const generateLabMetadata = (lab: Lab, tests: Test[]): Metadata => {
+    const locationString = [
+        lab.location?.address,
+        lab.location?.city,
+        lab.location?.state,
+        lab.location?.pincode
     ].filter(Boolean).join(', ');
-};
 
-// Structured Data Component
-export const LabStructuredData = ({
-                                      lab,
-                                      reviews,
-                                      averageRating,
-                                      tests
-                                  }: {
-    lab: Lab;
-    reviews: Review[];
-    averageRating: number;
-    tests: Test[];
-}) => {
-    return (
-        <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-                __html: JSON.stringify({
-                    "@context": "https://schema.org",
-                    "@type": "MedicalLaboratory",
-                    "name": lab.fullName,
-                    "description": lab.about || `Medical laboratory in ${lab.location.address}`,
-                    "url": `https://yourwebsite.com/labs/${lab.id}`,
-                    "telephone": lab.whatsapp,
-                    "image": lab.imageUrl || undefined,
-                    "address": {
-                        "@type": "PostalAddress",
-                        "streetAddress": lab.location.address,
-                        "addressLocality": lab.location.address,
-                        "addressCountry": "IN"
-                    },
-                    "availableTest": tests.map(test => ({
-                        "@type": "MedicalTest",
-                        "name": test.name,
-                        "description": test.name,
-                        "offers": {
-                            "@type": "Offer",
-                            "price": test.charge || test.homeCharge || test.visitCharge,
-                            "priceCurrency": "INR"
-                        }
-                    })),
-                    "aggregateRating": reviews.length > 0 ? {
-                        "@type": "AggregateRating",
-                        "ratingValue": averageRating,
-                        "reviewCount": reviews.length,
-                        "bestRating": "5",
-                        "worstRating": "1"
-                    } : undefined
-                })
-            }}
-        />
-    );
+    const testNames = (lab.specialties || []).slice(0, 5).map(t => t.name).join(', ');
+    const services = (lab.services || []).slice(0, 3).join(', ');
+
+    const title = `${lab.fullName} | Diagnostic Lab ${locationString ? `in ${locationString}` : ''} | DocZappoint`;
+    const description = `Book lab tests at ${lab.fullName}${locationString ? ` located at ${locationString}` : ''}. ${testNames ? `Offering tests like ${testNames}` : 'Various diagnostic tests available'}. ${services ? `Services include ${services}.` : ''}`;
+
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://doczappoint.com';
+    const canonicalUrl = `${baseUrl}/labs/${lab.id}`;
+
+    return {
+        title,
+        description,
+        applicationName: 'DocZappoint',
+        authors: [{ name: 'DocZappoint', url: baseUrl }],
+        generator: 'Next.js',
+        keywords: [
+            lab.fullName,
+            'diagnostic lab',
+            'lab tests',
+            'blood tests',
+            'home collection',
+            ...(locationString ? [`labs in ${locationString}`, `diagnostic centers in ${locationString}`] : []),
+            ...(testNames ? testNames.split(', ') : []),
+        ],
+        alternates: {
+            canonical: canonicalUrl,
+        },
+        openGraph: {
+            type: 'website',
+            url: canonicalUrl,
+            title,
+            description,
+            siteName: 'DocZappoint',
+            images: lab.imageUrl ? [
+                {
+                    url: lab.imageUrl.startsWith('http') ? lab.imageUrl : `${baseUrl}${lab.imageUrl}`,
+                    width: 800,
+                    height: 600,
+                    alt: `${lab.fullName} lab`,
+                }
+            ] : [
+                {
+                    url: `${baseUrl}/images/lab-default.jpg`,
+                    width: 800,
+                    height: 600,
+                    alt: 'DocZappoint Diagnostic Lab',
+                }
+            ],
+            locale: 'en_IN',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: lab.imageUrl ?
+                (lab.imageUrl.startsWith('http') ? lab.imageUrl : `${baseUrl}${lab.imageUrl}`) :
+                `${baseUrl}/images/lab-default.jpg`,
+        },
+        robots: {
+            index: true,
+            follow: true,
+            nocache: false,
+            googleBot: {
+                index: true,
+                follow: true,
+                noimageindex: false,
+            },
+        },
+        verification: {
+            google: 'your-google-verification-code',
+        },
+        other: {
+            'theme-color': '#ffffff',
+        },
+    };
 };

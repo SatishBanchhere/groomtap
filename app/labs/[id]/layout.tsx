@@ -1,85 +1,100 @@
 import { ReactNode } from 'react';
 import { Metadata } from 'next';
-import { getLabById } from '@/lib/labs';
+import { getLabById, getTestsByLab } from '@/lib/labs';
 
 type Props = {
     params: { id: string };
+    searchParams: { [key: string]: string | string[] | undefined };
     children: ReactNode;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
     let lab;
+    let tests: string[] = [];
+    const testType = searchParams?.test ?
+        (Array.isArray(searchParams.test) ? searchParams.test[0] : searchParams.test) :
+        undefined;
 
+    const {id} = await params;
     try {
-        lab = await getLabById(params.id);
+        lab = await getLabById(id);
+
+        if (lab) {
+            const labTests = lab.specialties;
+            console.log(labTests);
+            tests = [...new Set(labTests.map(t => t.name))]; // Unique test names
+        }
     } catch (error) {
-        console.error('Error fetching lab:', error);
-        return {
-            title: 'Lab Not Found | DocZappoint',
-            description: 'The diagnostic lab you are looking for could not be found. Browse our list of partner labs.',
-            robots: {
-                index: false,
-                follow: true,
-            },
-        };
+        console.error('Error fetching lab data:', error);
+        return notFoundMetadata();
     }
 
-    // If lab exists but is missing required fields
-    if (!lab?.fullName || !lab?.location?.address) {
-        return {
-            title: 'Lab Information Incomplete | DocZappoint',
-            description: 'This lab profile is currently incomplete. Please check back later or browse other labs.',
-            robots: {
-                index: false,
-                follow: true,
-            },
-        };
+    if (!lab) {
+        return notFoundMetadata();
     }
 
-    const tests = lab.specialties || [];
-    const testNames = tests.slice(0, 5).map(t => t.name).join(', ');
-    const locationString = `${lab.location.address}${lab.location.city ? `, ${lab.location.city}` : ''}`;
+    const { fullName, location, about, whatsapp, imageUrl } = lab;
+    const locationString = `${location?.address || ''}${location?.city ? `, ${location.city}` : ''}`;
+    const testTypeString = testType ? `Specializing in ${testType} tests` : '';
+    const testsString = tests.slice(0, 5).join(', ');
 
+    // Base metadata
     const baseMetadata: Metadata = {
-        title: `${lab.fullName} - Lab Tests in ${locationString} | DocZappoint`,
-        description: `${lab.fullName} located at ${locationString}. Book lab tests including ${testNames || 'various tests'} and more.`,
+        title: `${fullName} - ${testType || 'Diagnostic Lab'} in ${location?.city || ''} | DocZappoint`,
+        description: `${fullName} ${testTypeString} located at ${locationString}. ${about || ''} Available tests: ${testsString}`,
         keywords: [
-            lab.fullName,
-            `Lab in ${locationString}`,
-            `Book lab tests in ${locationString}`,
-            'Home collection lab tests',
-            ...(testNames ? [testNames] : []),
-            ...(lab.whatsapp ? [`Lab contact ${lab.whatsapp}`] : []),
-        ].filter(Boolean), // Remove empty strings
+            fullName,
+            testType ? `${testType} lab` : 'Diagnostic Lab',
+            location?.city ? `Labs in ${location.city}` : 'Diagnostic Lab',
+            location?.city ? `Best ${testType || 'diagnostic lab'} in ${location.city}` : 'Diagnostic Lab',
+            ...tests,
+            ...(whatsapp ? [whatsapp] : []),
+            'Blood tests',
+            'Pathology lab',
+            'Home collection'
+        ].filter(Boolean),
         alternates: {
-            canonical: `https://doczappoint.com/labs/${params.id}`,
+            canonical: testType
+                ? `https://doczappoint.com/labs/${id}?test=${encodeURIComponent(testType)}`
+                : `https://doczappoint.com/labs/${id}`,
         },
     };
 
+    // Open Graph metadata
     const openGraphMetadata: Metadata['openGraph'] = {
         ...baseMetadata,
         type: 'website',
-        images: lab.imageUrl ? [
-            {
-                url: lab.imageUrl,
-                width: 800,
-                height: 600,
-                alt: lab.fullName,
-            }
-        ] : undefined,
+        images: imageUrl ? [{
+            url: imageUrl,
+            width: 800,
+            height: 600,
+            alt: fullName,
+        }] : undefined,
     };
 
+    // Twitter metadata
     const twitterMetadata: Metadata['twitter'] = {
         card: 'summary_large_image',
         title: baseMetadata.title as string,
         description: baseMetadata.description as string,
-        images: lab.imageUrl ? [lab.imageUrl] : undefined,
+        images: imageUrl ? [imageUrl] : undefined,
     };
 
     return {
         ...baseMetadata,
         openGraph: openGraphMetadata,
         twitter: twitterMetadata,
+    };
+}
+
+function notFoundMetadata(): Metadata {
+    return {
+        title: 'Lab Not Found | DocZappoint',
+        description: 'The diagnostic lab you are looking for could not be found. Browse our list of partner labs.',
+        robots: {
+            index: false,
+            follow: true,
+        },
     };
 }
 

@@ -10,7 +10,7 @@ import { AuthProvider } from "@/contexts/auth-context";
 import { Toaster } from "sonner";
 import TopBar from "@/components/layout/top-bar";
 import { db } from "@/lib/firebase";
-import { doc, updateDoc, increment } from "firebase/firestore";
+import { doc, updateDoc, increment, getDoc, setDoc } from "firebase/firestore";
 import RightClickBlocker from "@/components/RightClickBlocker";
 
 export default function LayoutClient({ children }: { children: React.ReactNode }) {
@@ -19,17 +19,32 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
     // View counter effect
     useEffect(() => {
         const updateViewCount = async () => {
+            const analyticsDocRef = doc(db, "analytics", "viewCounts");
+
             try {
-                await updateDoc(doc(db, "analytics", "viewCounts"), {
-                    totalViews: increment(1),
-                    lastUpdated: new Date().toISOString(),
-                });
+                const docSnap = await getDoc(analyticsDocRef);
+
+                if (docSnap.exists()) {
+                    // Document exists, update it
+                    await updateDoc(analyticsDocRef, {
+                        totalViews: increment(1),
+                        lastUpdated: new Date().toISOString(),
+                    });
+                } else {
+                    // Document doesn't exist, create it with initial values
+                    await setDoc(analyticsDocRef, {
+                        totalViews: 1,
+                        lastUpdated: new Date().toISOString(),
+                    });
+                }
             } catch (error) {
                 console.error("Failed to update view count:", error);
             }
         };
+
         updateViewCount();
-    }, [pathName]); // Re-run when route changes
+    }, [pathName]);
+
 
     return (
         <AuthProvider>

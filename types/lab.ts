@@ -25,6 +25,7 @@ export type LabLocation = {
 }
 
 export type Lab = {
+    specialties: any;
     id: string;
     about: string;
     createdAt: string;
