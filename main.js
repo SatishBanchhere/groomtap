@@ -27,7 +27,10 @@ const fetchAllAppointments = async () => {
         const querySnapshot = await getDocs(collection(db, "Appointments"));
         querySnapshot.forEach((doc) => {
             // console.log({ id: doc.id, ...doc.data() });
-            console.log(doc.data().patientName);
+            if(doc.data().doctorId === "IYZLUumhpoF2meL0LwoK" && doc.data().patientName === "Shubham"){
+                console.log(doc.data());
+
+            }
         });
     } catch (error) {
         console.error("Error fetching appointments:", error);
