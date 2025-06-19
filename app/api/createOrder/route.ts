@@ -7,13 +7,13 @@ const corsHeaders = {
     "Access-Control-Allow-Methods": "POST",
     "Access-Control-Allow-Headers": "Content-Type",
 };
-
+const razorpay = new Razorpay({
+    key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
+    key_secret: process.env.RAZORPAY_SECRET!,
+});
 
 export async function POST(req: Request) {
-    const razorpay = new Razorpay({
-        key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
-        key_secret: process.env.RAZORPAY_SECRET!,
-    });
+
 
     try {
         const body = await req.json();
