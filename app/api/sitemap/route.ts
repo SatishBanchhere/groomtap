@@ -181,7 +181,7 @@ export async function GET() {
                         //     "1.0"
                         // );
                         addUrl(`${slugify(stateName)}/${slugify(district)}/ayushman/doctors?test=${slugify(specialty)}`, "weekly", "1.0");
-                        addUrl(`${slugify(stateName)}/${slugify(district)}/doctors?&test=${slugify(specialty)}`, "weekly", "1.0");
+                        // addUrl(`${slugify(stateName)}/${slugify(district)}/doctors?&test=${slugify(specialty)}`, "weekly", "1.0");
 
                     }
                 }
