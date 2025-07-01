@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { collection, getDocs } from "firebase/firestore";
 
 export async function GET() {
+
+    return new NextResponse("Success", { status: 200 });
     try {
         console.log("Starting sitemap generation...");
 
@@ -181,8 +183,8 @@ export async function GET() {
                         //     "1.0"
                         // );
                         addUrl(`${slugify(stateName)}/${slugify(district)}/ayushman/doctors?test=${slugify(specialty)}`, "weekly", "1.0");
-                        // addUrl(`${slugify(stateName)}/${slugify(district)}/doctors?&test=${slugify(specialty)}`, "weekly", "1.0");
-
+                        addUrl(`${slugify(stateName)}/${slugify(district)}/doctors?&test=${slugify(specialty)}`, "weekly", "1.0");
+                    //
                     }
                 }
             }
