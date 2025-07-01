@@ -129,7 +129,6 @@ export default function LabDetailPage() {
 
     return (
         <>
-            {/* Structured Data for SEO */}
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{
