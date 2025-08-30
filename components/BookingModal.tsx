@@ -70,9 +70,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, freelancer
 
             // Reset form
             setBookingData({ date: '', time: '', selectedServiceId: '' });
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error creating booking:', error);
-            setError(error.message || 'Failed to create booking');
+            setError('Failed to create booking');
         } finally {
             setIsLoading(false);
         }

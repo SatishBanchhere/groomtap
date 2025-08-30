@@ -120,9 +120,9 @@ const FreelancerForm: React.FC<FreelancerFormProps> = ({ isOpen, onClose, user, 
             setServices([{ id: '1', name: '', charge: 0 }]);
             setSelectedImage(null);
             setPreviewImage('');
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error creating freelancer:', error);
-            setError(error.message || 'Failed to create freelancer profile');
+            setError('Failed to create freelancer profile');
         } finally {
             setIsLoading(false);
         }

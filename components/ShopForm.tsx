@@ -156,9 +156,9 @@ const ShopForm: React.FC<ShopFormProps> = ({ isOpen, onClose, user, onSuccess })
             setServices([{ id: '1', name: '', charge: 0 }]);
             setSelectedImage(null);
             setPreviewImage('');
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error creating shop:', error);
-            setError(error.message || 'Failed to create shop profile');
+            setError('Failed to create shop profile');
         } finally {
             setIsLoading(false);
         }
