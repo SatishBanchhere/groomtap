@@ -1,3 +1,4 @@
+// app/types/index.ts
 export interface User {
     id: string;
     email: string;
@@ -12,13 +13,19 @@ export interface Service {
     charge: number;
 }
 
-export interface Freelancer {
+export interface Shop {
     id: string;
     uid: string;
-    name: string;
+    shopName: string;
+    ownerName: string;
     description: string;
+    address: string;
+    phone: string;
     imageUrl: string;
     services: Service[];
+    homeService: boolean; // Provides home service
+    shopService: boolean; // Provides in-shop service
+    homeServiceCharge?: number; // Additional charge for home service
     createdAt: string;
     updatedAt: string;
 }
@@ -38,6 +45,17 @@ export interface ShopBooking {
     totalCharge: number; // Service charge + home service charge (if applicable)
     status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
     createdAt: string;
+}
+
+export interface Freelancer {
+    id: string;
+    uid: string;
+    name: string;
+    description: string;
+    imageUrl: string;
+    services: Service[];
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface Booking {
@@ -62,4 +80,6 @@ export interface AuthModalProps {
 
 export interface NavbarProps {
     onSignInClick: () => void;
+    user?: User | null;
+    onSignOut?: () => void;
 }

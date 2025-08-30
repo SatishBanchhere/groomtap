@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { User, Shop, Service } from '@/types';
+import { User, Shop } from '@/types';
 
 interface ShopBookingModalProps {
     isOpen: boolean;
@@ -87,9 +87,9 @@ const ShopBookingModal: React.FC<ShopBookingModalProps> = ({ isOpen, onClose, sh
                 serviceType: 'shop',
                 clientAddress: '',
             });
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error creating shop booking:', error);
-            setError(error.message || 'Failed to create booking');
+            setError('Failed to create booking');
         } finally {
             setIsLoading(false);
         }

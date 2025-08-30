@@ -113,7 +113,6 @@ export default function BookingsPage() {
             console.log("🛠 Processing freelancer bookings...");
             freelancerBookingsSnapshot.forEach((doc) => {
                 const booking = doc.data() as Booking;
-                console.log("   ➡️ Freelancer booking:", { id: doc.id, ...booking });
 
                 combinedBookings.push({
                     id: doc.id,
@@ -132,7 +131,6 @@ export default function BookingsPage() {
             console.log("🛠 Processing shop bookings...");
             shopBookingsSnapshot.forEach((doc) => {
                 const booking = doc.data() as ShopBooking;
-                console.log("   ➡️ Shop booking:", { id: doc.id, ...booking });
 
                 combinedBookings.push({
                     id: doc.id,
@@ -315,7 +313,7 @@ export default function BookingsPage() {
                         ].map((tab) => (
                             <button
                                 key={tab.key}
-                                onClick={() => setActiveTab(tab.key as any)}
+                                onClick={() => setActiveTab(tab.key as never)}
                                 className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                                     activeTab === tab.key
                                         ? 'border-blue-500 text-blue-600'
