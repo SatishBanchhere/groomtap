@@ -1,6 +1,6 @@
 import { db } from '@/lib/firebase';
 import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
-import {Hospital, Doctor, Review} from '@/types/hospital';
+import {Hospital, Doctor, Review} from '@/types/salons';
 
 export const getHospitalById = async (id: string): Promise<Hospital | null> => {
     const docRef = doc(db, 'hospitals', id);

@@ -93,8 +93,9 @@ function notFoundMetadata(): Metadata {
         description: 'The diagnostic lab you are looking for could not be found. Browse our list of partner labs.',
         robots: {
             index: false,
-            follow: true,
+            follow: false,
         },
+        alternates: undefined
     };
 }
 

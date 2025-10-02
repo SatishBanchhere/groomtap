@@ -7,15 +7,15 @@ export default function FooterContact() {
       <ul className="space-y-3">
         <li className="flex items-start space-x-3">
           <MapPin size={18} className="text-[#ff8a3c] mt-1" />
-          <span className="text-sm text-gray-400">Arabihar ,802301</span>
+          <span className="text-sm text-gray-400">Nagpur, Maharashtra</span>
         </li>
         <li className="flex items-start space-x-3">
           <Phone size={18} className="text-[#ff8a3c] mt-1" />
-          <span className="text-sm text-gray-400">+91 9470075205</span>
+          <span className="text-sm text-gray-400">+91 8786668613</span>
         </li>
         <li className="flex items-start space-x-3">
           <Mail size={18} className="text-[#ff8a3c] mt-1" />
-          <span className="text-sm text-gray-400">doczappoint.in@gmail.com</span>
+          <span className="text-sm text-gray-400">groomtap.in@gmail.com</span>
         </li>
       </ul>
     </div>

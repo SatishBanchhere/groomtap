@@ -6,9 +6,9 @@ interface DoctorSEOTagsProps {
 }
 
 export const DoctorSEOTags = ({ doctor }: DoctorSEOTagsProps) => {
-    const pageUrl = `https://yourwebsite.com/doctors/${doctor.id}`;
-    const pageTitle = `Dr. ${doctor.fullName} - ${doctor.specialty} | DocZappoint`;
-    const pageDescription = `Book appointments with Dr. ${doctor.fullName}, ${doctor.specialty} in ${doctor.location.city}. ${doctor.about || ''}`;
+    const pageUrl = `https://groomtap.in/freelancers/${doctor.id}`;
+    const pageTitle = `${doctor.fullName} - ${doctor.specialty} | GroomTap`;
+    const pageDescription = `Book appointments with ${doctor.fullName}, ${doctor.specialty} in ${doctor.location.city}. ${doctor.about || ''}`;
 
     return (
         <Head>
@@ -39,13 +39,13 @@ export const DoctorSEOTags = ({ doctor }: DoctorSEOTagsProps) => {
 // Helper function to generate keywords
 const getKeywords = (doctor: Doctor) => {
     return [
-        `Dr. ${doctor.fullName}`,
+        `${doctor.fullName}`,
         `${doctor.specialty} in ${doctor.location.city}`,
         `${doctor.fullName} appointment`,
         `Book ${doctor.specialty} online`,
-        `Doctor in ${doctor.location.city}`,
+        `Freelancer in ${doctor.location.city}`,
         doctor.qualifications,
-        doctor.ayushmanCardAvailable ? 'Ayushman Bharat doctor' : '',
+        // doctor.ayushmanCardAvailable ? 'Ayushman Bharat doctor' : '',
     ].filter(Boolean).join(', ');
 };
 
@@ -61,10 +61,10 @@ export const DoctorStructuredData = ({ doctor, reviews, averageRating }: {
             dangerouslySetInnerHTML={{
                 __html: JSON.stringify({
                     "@context": "https://schema.org",
-                    "@type": "Physician",
-                    "name": `Dr. ${doctor.fullName}`,
+                    "@type": "Person",
+                    "name": `${doctor.fullName}`,
                     "description": doctor.about || `${doctor.specialty} in ${doctor.location.city}`,
-                    "url": `https://yourwebsite.com/doctors/${doctor.id}`,
+                    "url": `https://groomtap.in/freelancers/${doctor.id}`,
                     "telephone": doctor.phone,
                     "image": doctor.imageUrl || undefined,
                     "address": {
@@ -80,17 +80,17 @@ export const DoctorStructuredData = ({ doctor, reviews, averageRating }: {
                         "latitude": "", // Add if available
                         "longitude": "" // Add if available
                     },
-                    "medicalSpecialty": doctor.specialty,
+                    "jobTitle": doctor.specialty,
                     "priceRange": `₹${doctor.consultationFees}`,
                     "hasOfferCatalog": {
                         "@type": "OfferCatalog",
-                        "name": "Consultation Services",
+                        "name": "Beauty Services",
                         "itemListElement": [{
                             "@type": "Offer",
                             "itemOffered": {
                                 "@type": "Service",
-                                "name": "Consultation",
-                                "description": `Consultation with Dr. ${doctor.fullName}`,
+                                "name": "Beauty Service",
+                                "description": `Service with ${doctor.fullName}`,
                                 "price": doctor.consultationFees,
                                 "priceCurrency": "INR"
                             }

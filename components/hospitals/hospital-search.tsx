@@ -12,7 +12,8 @@ export default function HospitalSearch({ initialSearch = "" }: { initialSearch?:
         e.preventDefault()
         const params = new URLSearchParams()
         if (searchTerm) params.set("search", searchTerm)
-        router.push(`/hospitals?${params.toString()}`)
+        router.push(`/salons?${params.toString()}`)
+    
     }
 
     return (

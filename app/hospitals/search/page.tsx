@@ -59,7 +59,7 @@ export default function HospitalSearchPage() {
 
         setHospitals(hospitalsData)
       } catch (error) {
-        console.error("Error searching hospitals:", error)
+        console.error("Error searching salons:", error)
       } finally {
         setLoading(false)
       }
@@ -71,9 +71,9 @@ export default function HospitalSearchPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center gap-4 mb-8">
-        <Link href="/hospitals" className="flex items-center text-gray-600 hover:text-gray-900">
+        <Link href="/salons" className="flex items-center text-gray-600 hover:text-gray-900">
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to Hospitals
+          Back to Salons
         </Link>
       </div>
 
@@ -81,7 +81,7 @@ export default function HospitalSearchPage() {
         <SearchBar 
           type="hospitals" 
           showFilters 
-          placeholder="Search hospitals by name, location..."
+          placeholder="Search salons by name, location..."
         />
       </div>
 
@@ -101,7 +101,7 @@ export default function HospitalSearchPage() {
           </div>
         ) : hospitals.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-600">No hospitals found matching your search criteria.</p>
+            <p className="text-gray-600">No salons found matching your search criteria.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

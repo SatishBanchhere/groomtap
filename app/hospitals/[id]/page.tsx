@@ -110,7 +110,7 @@ export default function HospitalDetailPage({ params }: { params: { id: string } 
           setAverageRating(total / reviewsData.length)
         }
       } catch (error) {
-        console.error("Error fetching hospital and doctors:", error)
+        console.error("Error fetching salon and freelancers:", error)
       } finally {
         setLoading(false)
       }
@@ -170,7 +170,7 @@ export default function HospitalDetailPage({ params }: { params: { id: string } 
   if (!hospital) {
     return (
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold">Hospital not found</h1>
+          <h1 className="text-2xl font-bold">Salon not found</h1>
         </div>
     )
   }
@@ -190,9 +190,9 @@ export default function HospitalDetailPage({ params }: { params: { id: string } 
         )}
         <div className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/hospitals" className="flex items-center text-gray-600 hover:text-gray-900">
+          <Link href="/salons" className="flex items-center text-gray-600 hover:text-gray-900">
             <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Hospitals
+            Back to Salons
           </Link>
         </div>
 
@@ -200,7 +200,7 @@ export default function HospitalDetailPage({ params }: { params: { id: string } 
           <div className="relative h-64 w-full">
             <Image
                 src={hospital.imageUrl || "/placeholder-hospital.jpg"}
-                alt={hospital.fullName || "Hospital Name"}
+                alt={hospital.fullName || "Salon Name"}
                 fill
                 className="object-cover"
             />
@@ -241,16 +241,16 @@ export default function HospitalDetailPage({ params }: { params: { id: string } 
               </div>
             </div>
             <p className="text-gray-700 mb-8">{hospital.about}</p>
-            {hospital.ayushmanCardAvailable && (
+            {/* {hospital.ayushmanCardAvailable && (
                 <div className="flex items-center gap-2">
                                                             <span className="text-green-600 font-medium text-sm">
                                                               ✅ Ayushman Card Accepted
                                                             </span>
                 </div>
-            )}
+            )} */}
             {/* Reviews Section */}
             <div className="mt-8">
-              <h2 className="text-2xl font-bold mb-4">Patient Reviews</h2>
+              <h2 className="text-2xl font-bold mb-4">Customer Reviews</h2>
 
               {showReviewForm && (
                   <div className="mb-8 p-4 border rounded-lg">
@@ -270,7 +270,7 @@ export default function HospitalDetailPage({ params }: { params: { id: string } 
                     <textarea
                         value={newReview.comment}
                         onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                        placeholder="Share your experience with this hospital..."
+                        placeholder="Share your experience with this salon..."
                         className="w-full p-2 border rounded-md mb-4 h-24"
                     />
                     <div className="flex justify-end gap-2">
@@ -341,9 +341,9 @@ export default function HospitalDetailPage({ params }: { params: { id: string } 
 
         <div className="mb-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Doctors at {hospital.fullName}</h2>
+            <h2 className="text-2xl font-bold">Freelancers at {hospital.fullName}</h2>
             <Link href="/doctors" className="text-[#ff8a3c] hover:text-[#e67a34]">
-              View all doctors
+              View all freelancers
             </Link>
           </div>
 
@@ -358,7 +358,7 @@ export default function HospitalDetailPage({ params }: { params: { id: string } 
                     <div className="relative h-20 w-20 flex-shrink-0">
                       <Image
                           src={doctor.imageUrl || "/placeholder-doctor.jpg"}
-                          alt={doctor.fullName || "Doctor Name"}
+                          alt={doctor.fullName || "Freelancer Name"}
                           fill
                           className="object-cover rounded-full"
                       />
@@ -380,15 +380,15 @@ export default function HospitalDetailPage({ params }: { params: { id: string } 
                         </div>
                       </div>
                       <div className="mt-2 text-[#ff8a3c] font-medium">
-                        ₹{doctor.consultationFees} Consultation
+                        ₹{doctor.consultationFees} Service
                       </div>
-                      {doctor.ayushmanCardAvailable && (
+                      {/* {doctor.ayushmanCardAvailable && (
                           <div className="flex items-center gap-2">
                                                             <span className="text-green-600 font-medium text-sm">
                                                               ✅ Ayushman Card Accepted
                                                             </span>
                           </div>
-                      )}
+                      )} */}
                     </div>
                   </div>
                 </Link>

@@ -286,7 +286,7 @@ export default function DoctorSearchPage() {
                     const data = doc.data();
                     return {
                         id: doc.id,
-                        fullName: data.fullName || 'Unknown Doctor',
+                        fullName: data.fullName || 'Unknown Freelancer',
                         specialty: data.specialty,
                         imageUrl: data.imageUrl,
                         consultationFees: data.consultationFees,
@@ -325,8 +325,8 @@ export default function DoctorSearchPage() {
 
             setDoctors(sortedDoctors)
         } catch (err) {
-            console.error('Error fetching doctors:', err)
-            setError('Failed to load doctors. Please try again later.')
+            console.error('Error fetching groomers:', err)
+            setError('Failed to load groomers. Please try again later.')
         } finally {
             setLoading(false)
         }
@@ -398,7 +398,7 @@ export default function DoctorSearchPage() {
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search doctors by name or specialty..."
+                            placeholder="Search groomers by name or service..."
                             className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         />
                         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -438,7 +438,7 @@ export default function DoctorSearchPage() {
                             >
                                 <div
                                     className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-3">
-                                    <span className="text-2xl">👨‍⚕️</span>
+                                    <span className="text-2xl">💄</span>
                                 </div>
                                 <span className="text-base font-medium">All</span>
                             </Button>
@@ -475,7 +475,7 @@ export default function DoctorSearchPage() {
                                         ) : (
                                             <div
                                                 className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                                <span className="text-2xl">🏥</span>
+                                                <span className="text-2xl">✂️</span>
                                             </div>
                                         )}
                                     </div>
@@ -497,7 +497,7 @@ export default function DoctorSearchPage() {
 
             {!locationAvailable && (
                 <div className="bg-blue-100 text-blue-800 p-3 mb-4 rounded">
-                    <p>⚠️ Location not available - showing all doctors</p>
+                    <p>⚠️ Location not available - showing all groomers</p>
                 </div>
             )}
 
@@ -505,7 +505,7 @@ export default function DoctorSearchPage() {
                 <div className="flex justify-center items-center h-64">
                     <div
                         className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
-                    <span className="ml-3">Loading doctors...</span>
+                    <span className="ml-3">Loading groomers...</span>
                 </div>
             ) : error ? (
                 <div className="text-red-500 text-center py-8">{error}</div>
@@ -514,7 +514,7 @@ export default function DoctorSearchPage() {
                     <div className="mb-4">
                         {filteredDoctors.length > 0 && (
                             <p className="text-sm text-gray-600">
-                                Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredDoctors.length)} of {filteredDoctors.length} doctors
+                                Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredDoctors.length)} of {filteredDoctors.length} groomers
                                 {selectedSpecialty ? ` in ${selectedSpecialty}` : ''}
                                 {state ? ` in ${state}` : ''}
                                 {district ? `, ${district}` : ''}
@@ -640,7 +640,7 @@ export default function DoctorSearchPage() {
                         ) : (
                             <div className="col-span-full text-center py-12">
                                 <p className="text-gray-500 text-lg">
-                                    No doctors found {searchQuery ? `matching "${searchQuery}"` : ''}
+                                    No groomers found {searchQuery ? `matching "${searchQuery}"` : ''}
                                     {selectedSpecialty ? ` in ${selectedSpecialty}` : ''}
                                     {state ? ` in ${state}` : ''}
                                     {district ? `, ${district}` : ''}

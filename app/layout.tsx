@@ -7,9 +7,9 @@ import LayoutClient from "./layout-client"; // ✅ New client layout wrapper
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title: "DocZappoint - Book Doctor Appointments Online",
+    title: "GroomTap - Book Salon Appointments Online",
     description:
-        "Book doctor appointments online with DocZappoint. Find the best doctors and specialists near you.",
+        "Book salon appointments online with GroomTap. Find the best salons and experts near you.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

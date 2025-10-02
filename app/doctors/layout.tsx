@@ -47,37 +47,37 @@ export async function generateMetadata({
     const formattedDistrict = formatText(district);
     const formattedSpecialty = formatText(specialty);
 
-    let title = 'Find Doctors Near You | Book Appointments Online | DoczAppoint';
-    let description = 'Easily find doctors near you and book appointments online with our secure platform.';
+    let title = 'Find Groomers Near You | Book Beauty Services Online | GroomTap';
+    let description = 'Easily find beauty groomers near you and book services online with our secure platform.';
     let keywords = [
-        'doctors near me',
-        'book doctor appointment',
-        'online doctor booking',
-        'nearby clinics',
-        'health checkup',
-        'DoczAppoint'
+        'groomers near me',
+        'book beauty appointment',
+        'online beauty booking',
+        'nearby salons',
+        'beauty services',
+        'GroomTap'
     ];
 
     if (formattedSpecialty) {
-        title = `${formattedSpecialty} Doctors | Find Specialists | DoczAppoint`;
-        description = `Find the best ${formattedSpecialty.toLowerCase()} specialists near you. ${description}`;
-        keywords.unshift(`${formattedSpecialty.toLowerCase()} doctor near me`);
+        title = `${formattedSpecialty} Services | Find Beauty Experts | GroomTap`;
+        description = `Find the best ${formattedSpecialty.toLowerCase()} experts near you. ${description}`;
+        keywords.unshift(`${formattedSpecialty.toLowerCase()} service near me`);
     }
 
     if (formattedState) {
         title = `${title} in ${formattedState}`;
         description = `${description} Serving ${formattedState}.`;
-        keywords.push(`doctors in ${formattedState.toLowerCase()}`);
+        keywords.push(`groomers in ${formattedState.toLowerCase()}`);
     }
 
     if (formattedDistrict) {
         title = `${title}, ${formattedDistrict}`;
         description = `${description} Find local doctors in ${formattedDistrict}.`;
-        keywords.push(`doctors in ${formattedDistrict.toLowerCase()}`);
+        keywords.push(`groomers in ${formattedDistrict.toLowerCase()}`);
     }
 
     // Generate canonical URL
-    const canonicalUrl = `https://doczappoint.com/doctors${
+    const canonicalUrl = `https://groomtap.in/freelancers${
         state ? `/${state}` : ''
     }${district ? `/${district}` : ''}${
         specialty ? `?specialty=${specialty}` : ''
@@ -97,20 +97,20 @@ export async function generateMetadata({
             type: 'website',
             images: [
                 {
-                    url: 'https://doczappoint.com/images/doctors-og-image.jpg',
+                    url: 'https://groomtap.in/images/doctors-og-image.jpg',
                     width: 1200,
                     height: 630,
-                    alt: 'Find Doctors on DoczAppoint',
+                    alt: 'Find Doctors on GroomTap',
                 },
             ],
-            siteName: 'DoczAppoint',
+            siteName: 'GroomTap',
         },
         twitter: {
             card: 'summary_large_image',
             title,
             description,
-            images: ['https://doczappoint.com/images/doctors-twitter-image.jpg'],
-            site: '@doczappoint',
+            images: ['https://groomtap.in/images/doctors-twitter-image.jpg'],
+            site: '@groomtap',
         },
         robots: {
             index: true,

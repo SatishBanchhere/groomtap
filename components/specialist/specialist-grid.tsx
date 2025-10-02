@@ -7,7 +7,7 @@ export default function SpecialistGrid() {
     <section className="py-12 bg-[#f8f5ef]">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <SpecialistCard title="Dentist" />
+          {/* <SpecialistCard title="Dentist" />
           <SpecialistCard title="Cardiologist" />
           <SpecialistCard title="Dermatologist" />
           <SpecialistCard title="Ayurveda" />
@@ -18,7 +18,7 @@ export default function SpecialistGrid() {
           <SpecialistCard title="Neurologist" />
           <SpecialistCard title="Psychiatrist" />
           <SpecialistCard title="Pediatrician" />
-          <SpecialistCard title="Oncologist" />
+          <SpecialistCard title="Oncologist" /> */}
         </div>
       </div>
     </section>

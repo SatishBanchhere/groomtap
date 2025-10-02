@@ -15,8 +15,13 @@ export async function generateMetadata({
 
     if (!specialtyDoc.exists()) {
         return {
-            title: "Specialty Not Found | DoczAppoint",
-            description: "The requested medical specialty was not found.",
+            title: "Service Not Found | GroomTap",
+            description: "The requested beauty service was not found.",
+            robots: {
+                index: false,
+                follow: false,
+            },
+            alternates: undefined
         }
     }
 
@@ -31,28 +36,28 @@ export async function generateMetadata({
     }
 
     return {
-        title: `${specialty.name} Specialists | Book Online | DoczAppoint`,
-        description: specialty.description || `Book top ${specialty.name} specialists near you on DoczAppoint. Experienced doctors, verified reviews, and easy online booking.`,
+        title: `${specialty.name} Experts | Book Online | GroomTap`,
+        description: specialty.description || `Book top ${specialty.name} experts near you on GroomTap. Experienced freelancers, verified reviews, and easy online booking.`,
         keywords: [
-            `${specialty.name.toLowerCase()} doctor`,
-            `${specialty.name.toLowerCase()} specialist`,
-            'book doctor online',
-            'doctor appointment',
+            `${specialty.name.toLowerCase()} freelancer`,
+            `${specialty.name.toLowerCase()} expert`,
+            'book freelancer online',
+            'grooming appointment',
             `${specialty.name} near me`,
-            'healthcare booking',
-            'DoczAppoint',
+            'beauty booking',
+            'GroomTap',
         ],
         openGraph: {
-            title: `${specialty.name} Specialists | DoczAppoint`,
-            description: specialty.description || `Find and book the best ${specialty.name} specialists in your area.`,
-            url: `https://doczappoint.com/specialist/${params.id}`,
-            siteName: 'DoczAppoint',
+            title: `${specialty.name} Experts | GroomTap`,
+            description: specialty.description || `Find and book the best ${specialty.name} experts in your area.`,
+            url: `https://groomtap.in/services/${params.id}`,
+            siteName: 'GroomTap',
             images: [
                 {
-                    url: specialty.imageUrl || 'https://doczappoint.com/og-default.jpg',
+                    url: specialty.imageUrl || 'https://groomtap.in/og-default.jpg',
                     width: 1200,
                     height: 630,
-                    alt: `${specialty.name} specialists available on DoczAppoint`,
+                    alt: `${specialty.name} experts available on GroomTap`,
                 },
             ],
             locale: 'en_US',
@@ -60,14 +65,14 @@ export async function generateMetadata({
         },
         twitter: {
             card: 'summary_large_image',
-            title: `${specialty.name} Specialists | DoczAppoint`,
-            description: specialty.description || `Book experienced ${specialty.name} specialists online.`,
-            images: [specialty.imageUrl || 'https://doczappoint.com/og-default.jpg'],
+            title: `${specialty.name} Experts | GroomTap`,
+            description: specialty.description || `Book experienced ${specialty.name} experts online.`,
+            images: [specialty.imageUrl || 'https://groomtap.in/og-default.jpg'],
         },
         alternates: {
-            canonical: `https://doczappoint.com/specialist/${params.id}`,
+            canonical: `https://groomtap.in/specialist/${params.id}`,
         },
-        metadataBase: new URL('https://doczappoint.com'),
+        metadataBase: new URL('https://groomtap.in'),
     }
 }
 

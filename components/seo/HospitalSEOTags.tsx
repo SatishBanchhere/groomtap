@@ -7,8 +7,8 @@ interface HospitalSEOTagsProps {
 }
 
 export const HospitalSEOTags = ({ hospital, doctors }: HospitalSEOTagsProps) => {
-    const pageUrl = `https://yourwebsite.com/hospitals/${hospital.id}`;
-    const pageTitle = `${hospital.fullName} - ${hospital.location.city} | DocZappoint`;
+    const pageUrl = `https://groomtap.in/salons/${hospital.id}`;
+    const pageTitle = `${hospital.fullName} - ${hospital.location.city} | GroomTap`;
     const pageDescription = `${hospital.fullName} located at ${hospital.location.address}, ${hospital.location.city}. ${hospital.about || ''}`;
     const specialties = [...new Set(doctors.map(d => d.specialty))].join(', ');
 
@@ -42,11 +42,11 @@ export const HospitalSEOTags = ({ hospital, doctors }: HospitalSEOTagsProps) => 
 const getKeywords = (hospital: Hospital, specialties: string) => {
     return [
         hospital.fullName,
-        `Hospitals in ${hospital.location.city}`,
+        `Salons in ${hospital.location.city}`,
         `${hospital.fullName} ${hospital.location.city}`,
-        `Best hospital in ${hospital.location.city}`,
+        `Best salon in ${hospital.location.city}`,
         specialties,
-        hospital.ayushmanCardAvailable ? 'Ayushman Bharat hospital' : '',
+        // hospital.ayushmanCardAvailable ? 'Ayushman Bharat hospital' : '',
         hospital.phone,
     ].filter(Boolean).join(', ');
 };
@@ -69,10 +69,10 @@ export const HospitalStructuredData = ({
             dangerouslySetInnerHTML={{
                 __html: JSON.stringify({
                     "@context": "https://schema.org",
-                    "@type": "Hospital",
+                    "@type": "BeautySalon",
                     "name": hospital.fullName,
                     "description": hospital.about || `Hospital in ${hospital.location.city}`,
-                    "url": `https://yourwebsite.com/hospitals/${hospital.id}`,
+                    "url": `https://groomtap.in/salons/${hospital.id}`,
                     "telephone": hospital.phone,
                     "image": hospital.imageUrl || undefined,
                     "address": {
@@ -86,16 +86,16 @@ export const HospitalStructuredData = ({
                     "medicalSpecialty": [...new Set(doctors.map(d => d.specialty))],
                     "hasOfferCatalog": {
                         "@type": "OfferCatalog",
-                        "name": "Medical Services",
+                        "name": "Beauty Services",
                         "itemListElement": doctors.map(doctor => ({
                             "@type": "Offer",
                             "itemOffered": {
                                 "@type": "Service",
-                                "name": `${doctor.specialty} Consultation`,
-                                "description": `Consultation with Dr. ${doctor.fullName}`,
+                                "name": `${doctor.specialty} Service`,
+                                "description": `Service with ${doctor.fullName}`,
                                 "provider": {
-                                    "@type": "Physician",
-                                    "name": `Dr. ${doctor.fullName}`,
+                                    "@type": "Person",
+                                    "name": `${doctor.fullName}`,
                                     "medicalSpecialty": doctor.specialty
                                 }
                             }

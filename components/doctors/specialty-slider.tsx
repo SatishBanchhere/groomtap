@@ -26,7 +26,7 @@ export default function SpecialtySlider({
         <div className="w-full overflow-x-auto py-4">
             <div className="flex space-x-4 px-4">
                 <Link
-                    href={`/doctors/search?q=${searchTerm}`}
+                    href={`/freelancers/search?q=${searchTerm}`}
                     className={`flex flex-col items-center justify-center px-4 py-2 rounded-lg min-w-fit ${
                         !selectedSpecialty
                             ? 'bg-blue-100 border border-blue-500'
@@ -46,7 +46,7 @@ export default function SpecialtySlider({
                         whileTap={{ scale: 0.95 }}
                     >
                         <Link
-                            href={`/doctors/search?q=${searchTerm}&specialty=${encodeURIComponent(
+                            href={`/freelancers/search?q=${searchTerm}&specialty=${encodeURIComponent(
                                 specialty.title
                             )}`}
                             className={`flex flex-col items-center justify-center px-4 py-2 rounded-lg min-w-fit ${

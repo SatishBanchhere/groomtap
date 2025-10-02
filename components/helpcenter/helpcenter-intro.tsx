@@ -40,13 +40,9 @@ export default function HelpcenterIntro() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           <div className="space-y-4">
             <span className="text-[#ff8a3c] font-medium">Help Center</span>
-            <h2 className="text-3xl md:text-4xl font-bold">We bring care to your home with one click — while keeping your data private and secure.</h2>
-            {/*<p className="text-gray-600">*/}
-            {/*  DocZappoint Pvt. Ltd., registered in January 2024, is at the forefront of healthcare innovation. Launched*/}
-            {/*  on July 10th, 2024, we revolutionize healthcare by offering seamless online doctor appointments through*/}
-            {/*  our advanced telemedicine platform, connecting patients with licensed professionals remotely. Our*/}
-            {/*  innovative approach ensures healthcare is more accessible, convenient, and patient-centric.*/}
-            {/*</p>*/}
+<h2 className="text-3xl md:text-4xl font-bold">
+  We bring grooming services to your doorstep — fast, easy, and completely secure.
+</h2>
             <div
 
                 className="privacy-content"

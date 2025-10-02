@@ -2,9 +2,8 @@
 import { MapPin, Phone } from "lucide-react"
 import Link from "next/link"
 import {useEffect, useState} from "react";
-import {collection, getDocs, getDoc} from "firebase/firestore";
+import {collection, getDocs} from "firebase/firestore";
 import {db} from "@/lib/firebase";
-import {address} from "framer-motion/m";
 
 type data = {
   phoneNumber: string,
@@ -17,7 +16,6 @@ const initialData = {
 }
 
 export default function TopBar() {
-
   const [impData, setImpData] = useState<data>(initialData);
 
   useEffect(() => {
@@ -44,20 +42,19 @@ export default function TopBar() {
   }
 
   return (
-    <div className="bg-[#1e293b] text-white py-2">
-      <div className="container mx-auto px-4 flex items-center justify-between">
-        <div className="flex items-center space-x-6">
-          <div className="flex items-center space-x-1">
-            <MapPin size={16} className="text-[#ff8a3c]" />
-            <span className="text-sm">{impData.address.replace(/<\/?p>/g, "")}</span>
+    <div className="bg-gradient-to-r from-emerald-800 to-green-700 text-white py-3">
+      <div className="container mx-auto px-4 flex items-center justify-center">
+        <div className="flex items-center space-x-8">
+          <div className="flex items-center space-x-2">
+            <Phone size={16} className="text-green-300" />
+            <span className="text-sm font-medium">{impData.phoneNumber.replace(/<[^>]*>?/gm, "")}</span>
           </div>
-          <div className="flex items-center space-x-1">
-            <Phone size={16} className="text-[#ff8a3c]" />
-            <span className="text-sm">{impData.phoneNumber.replace(/<[^>]*>?/gm, "")}</span>
+          <div className="flex items-center space-x-2">
+            <MapPin size={16} className="text-green-300" />
+            <span className="text-sm font-medium">{impData.address.replace(/<\/?p>/g, "")}</span>
           </div>
         </div>
       </div>
     </div>
   )
 }
-

@@ -289,7 +289,7 @@ export default function HealthcareSearchPage() {
             <div className="flex gap-2">
               <input
                   type="text"
-                  placeholder="Search doctors, hospitals, labs..."
+                  placeholder="Search groomers, salons, services..."
                   className="flex-1 border border-gray-300 rounded-lg px-4 py-3 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -406,13 +406,13 @@ export default function HealthcareSearchPage() {
                 className={`px-4 py-2 font-medium ${activeTab === 'doctors' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => setActiveTab('doctors')}
             >
-              Doctors
+              Groomers
             </button>
             <button
                 className={`px-4 py-2 font-medium ${activeTab === 'hospitals' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => setActiveTab('hospitals')}
             >
-              Hospitals
+              Salons
             </button>
             <button
                 className={`px-4 py-2 font-medium ${activeTab === 'labs' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
@@ -465,7 +465,7 @@ export default function HealthcareSearchPage() {
                     <div className="space-y-8">
                       {filteredDoctors.length > 0 && (
                           <div>
-                            <h2 className="text-xl font-bold mb-4">Doctors</h2>
+                            <h2 className="text-xl font-bold mb-4">Groomers</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                               {paginatedDoctors.map(doctor => (
                                   <DoctorCard key={doctor.id} doctor={doctor} />
@@ -476,7 +476,7 @@ export default function HealthcareSearchPage() {
 
                       {filteredHospitals.length > 0 && (
                           <div>
-                            <h2 className="text-xl font-bold mb-4">Hospitals</h2>
+                            <h2 className="text-xl font-bold mb-4">Salons</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                               {paginatedHospitals.map(hospital => (
                                   <HospitalCard key={hospital.id} hospital={hospital} />
@@ -485,7 +485,7 @@ export default function HealthcareSearchPage() {
                           </div>
                       )}
 
-                      {filteredLabs.length > 0 && (
+                      {/* {filteredLabs.length > 0 && (
                           <div>
                             <h2 className="text-xl font-bold mb-4">Diagnostic Labs</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -494,9 +494,9 @@ export default function HealthcareSearchPage() {
                               ))}
                             </div>
                           </div>
-                      )}
+                      )} */}
 
-                      {filteredEmergency.length > 0 && (
+                      {/* {filteredEmergency.length > 0 && (
                           <div>
                             <h2 className="text-xl font-bold mb-4">Emergency Services</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -505,7 +505,7 @@ export default function HealthcareSearchPage() {
                               ))}
                             </div>
                           </div>
-                      )}
+                      )} */}
 
                       {(filteredDoctors.length === 0 && filteredHospitals.length === 0 &&
                           filteredLabs.length === 0 && filteredEmergency.length === 0) && (
@@ -544,14 +544,14 @@ export default function HealthcareSearchPage() {
                           </div>
                       ) : (
                           <div className="text-center py-12">
-                            <p className="text-gray-600">No hospitals found matching your criteria</p>
+                            <p className="text-gray-600">No salons found matching your criteria</p>
                           </div>
                       )}
                     </div>
                 )}
 
                 {/* Labs results */}
-                {activeTab === 'labs' && (
+                {/* {activeTab === 'labs' && (
                     <div>
                       {filteredLabs.length > 0 ? (
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -565,10 +565,10 @@ export default function HealthcareSearchPage() {
                           </div>
                       )}
                     </div>
-                )}
+                )} */}
 
                 {/* Emergency results */}
-                {activeTab === 'emergency' && (
+                {/* {activeTab === 'emergency' && (
                     <div>
                       {filteredEmergency.length > 0 ? (
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -582,7 +582,7 @@ export default function HealthcareSearchPage() {
                           </div>
                       )}
                     </div>
-                )}
+                )} */}
 
                 {/* Pagination */}
                 {(activeTab !== 'all' && totalPages > 1) && (
@@ -644,7 +644,7 @@ function DoctorCard({ doctor }: { doctor: Doctor }) {
                 <p className="text-gray-600 text-sm">{doctor.specialty}</p>
               </div>
               <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-              Doctor
+              Groomer
             </span>
             </div>
 
@@ -679,7 +679,7 @@ function DoctorCard({ doctor }: { doctor: Doctor }) {
 
 function HospitalCard({ hospital }: { hospital: Hospital }) {
   return (
-      <Link href={`/hospitals/${hospital.id}`}>
+      <Link href={`/salons/${hospital.id}`}>
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
         <div className="relative h-48">
@@ -691,7 +691,7 @@ function HospitalCard({ hospital }: { hospital: Hospital }) {
               className="object-cover w-full h-full"
           />
           <span className="absolute top-2 right-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-          Hospital
+          Salon
         </span>
         </div>
         <div className="p-4">
@@ -713,13 +713,13 @@ function HospitalCard({ hospital }: { hospital: Hospital }) {
             <span>{hospital.location.address}, {hospital.location.city}</span>
           </div>
 
-          {hospital.emergencyServices && (
+          {/* {hospital.emergencyServices && (
               <div className="mt-2">
             <span className="inline-block bg-red-100 text-red-800 text-xs px-2 py-1 rounded">
               24/7 Emergency
             </span>
               </div>
-          )}
+          )} */}
 
           <div className="mt-4 flex flex-wrap gap-1">
             {hospital.specialties?.slice(0, 3).map(specialty => (

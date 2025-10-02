@@ -260,7 +260,7 @@ export default function HospitalPage() {
                 const data = doc.data()
                 hospitalsData.push({
                     id: doc.id,
-                    fullName: data.fullName || 'Unknown Hospital',
+                    fullName: data.fullName || 'Unknown Salon',
                     services: data.services || [],
                     imageUrl: data.imageUrl,
                     ayushmanCardAvailable: data.ayushmanCardAvailable,
@@ -303,8 +303,8 @@ export default function HospitalPage() {
                 setFilteredHospitals(sortedHospitals)
             }
         } catch (err) {
-            console.error('Error fetching hospitals:', err)
-            setError('Failed to load hospitals. Please try again later.')
+            console.error('Error fetching salons:', err)
+            setError('Failed to load salons. Please try again later.')
         } finally {
             setLoading(false)
         }
@@ -319,7 +319,7 @@ export default function HospitalPage() {
         const params = new URLSearchParams()
         if (searchQuery) params.set('q', searchQuery)
         if (selectedService) params.set('service', selectedService)
-        window.location.href = `/hospitals?${params.toString()}`
+        window.location.href = `/salons?${params.toString()}`
     }
 
     const getFullLocation = (hospital: Hospital) => {
@@ -357,7 +357,7 @@ export default function HospitalPage() {
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search hospitals by name or services..."
+                            placeholder="Search salons by name or services..."
                             className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         />
                         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -384,7 +384,7 @@ export default function HospitalPage() {
                         }}
                         className="flex space-x-4 px-4">
                         <Link
-                            href={`/hospitals`}
+                            href={`/salons`}
                             className={`flex flex-col items-center justify-center px-4 py-2 rounded-lg min-w-fit ${
                                 !selectedService
                                     ? 'bg-blue-100 border border-blue-500'
@@ -392,7 +392,7 @@ export default function HospitalPage() {
                             } transition-colors`}
                         >
                             <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center mb-2">
-                                <span className="text-lg">🏥</span>
+                                <span className="text-lg">💄</span>
                             </div>
 
                             <span className="text-sm font-medium">All</span>
@@ -405,7 +405,7 @@ export default function HospitalPage() {
                                 whileTap={{ scale: 0.95 }}
                             >
                                 <Link
-                                    href={`/hospitals?q=${searchTerm}&service=${encodeURIComponent(
+                                    href={`/salons?q=${searchTerm}&service=${encodeURIComponent(
                                         service.name
                                     )}`}
                                     className={`flex flex-col items-center justify-center px-4 py-2 rounded-lg min-w-fit ${
@@ -426,7 +426,7 @@ export default function HospitalPage() {
                                         </div>
                                     ) : (
                                         <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center mb-2">
-                                            <span className="text-lg">🩺</span>
+                                            <span className="text-lg">✂️</span>
                                         </div>
                                     )}
                                     <span className="text-sm font-medium text-center">
@@ -447,14 +447,14 @@ export default function HospitalPage() {
 
             {!locationAvailable && (
                 <div className="bg-blue-100 text-blue-800 p-3 mb-4 rounded">
-                    <p>⚠️ Location not available - showing all hospitals</p>
+                    <p>⚠️ Location not available - showing all salons</p>
                 </div>
             )}
 
             {loading ? (
                 <div className="flex justify-center items-center h-64">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
-                    <span className="ml-3">Loading nearby hospitals...</span>
+                    <span className="ml-3">Loading nearby salons...</span>
                 </div>
             ) : error ? (
                 <div className="text-red-500 text-center py-8">{error}</div>
@@ -468,7 +468,7 @@ export default function HospitalPage() {
                                         Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredHospitals.length)} of {filteredHospitals.length} hospitals
                                         {filteredHospitals.some(d => d.distanceValue && d.distanceValue <= 10000)
                                             ? ' within 10km of your location'
-                                            : ' (none within 100km, showing all hospitals)'}
+                                            : ' (none within 100km, showing all salons)'}
                                         {searchTerm ? ` matching "${searchTerm}"` : ''}
                                         {selectedService ? ` with ${selectedService} service` : ''}
                                     </>
@@ -589,7 +589,7 @@ export default function HospitalPage() {
 
                                             <div className="flex justify-end mt-4">
                                                 <Link
-                                                    href={`/hospitals/${hospital.id}`}
+                                                    href={`/salons/${hospital.id}`}
                                                     className="px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors"
                                                 >
                                                     View Details
@@ -602,7 +602,7 @@ export default function HospitalPage() {
                         ) : (
                             <div className="col-span-full text-center py-12">
                                 <p className="text-gray-500 text-lg">
-                                    No hospitals found {searchTerm ? `matching "${searchTerm}"` : ''}
+                                    No salons found {searchTerm ? `matching "${searchTerm}"` : ''}
                                     {selectedService ? ` with ${selectedService} service` : ''}
                                 </p>
                             </div>

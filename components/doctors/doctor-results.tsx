@@ -139,7 +139,7 @@ function DoctorCard({
         <div className="mt-2 text-xs text-gray-600">
           Available: {availableDays}
         </div>
-        <Link href={`/doctors/${id}`} className="btn-outline text-sm mt-3 w-full">
+        <Link href={`/freelancers/${id}`} className="btn-outline text-sm mt-3 w-full">
           Book Appointment
         </Link>
       </div>

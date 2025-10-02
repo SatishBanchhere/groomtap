@@ -22,16 +22,16 @@ export async function generateMetadata({
     const serviceName = serviceParam ? formatServiceName(serviceParam.toString()) : ''
 
     // Dynamic title and description
-    let title = "Find Hospitals Near You | DoczAppoint"
-    let description = "Search for hospitals and book appointments online"
+    let title = "Find Salons Near You | GroomTap"
+    let description = "Search for salons and book beauty services online"
 
     if (serviceName) {
-        title = `${serviceName} Hospitals | Specialist Centers | DoczAppoint`
+        title = `${serviceName} Services | Beauty Experts | GroomTap`
         description = `Find the best ${serviceName.toLowerCase()} hospitals and book appointments`
     }
 
     if (searchQuery) {
-        title = `Hospitals for "${searchQuery}" | DoczAppoint`
+        title = `Salons for "${searchQuery}" | GroomTap`
         description = `Search results for "${searchQuery}" | ${description}`
     }
 
@@ -39,7 +39,7 @@ export async function generateMetadata({
     const urlParams = new URLSearchParams()
     if (searchQuery) urlParams.set('q', searchQuery.toString())
     if (serviceParam) urlParams.set('service', serviceParam.toString())
-    const canonicalUrl = `https://doczappoint.com/hospitals${
+    const canonicalUrl = `https://groomtap.in/salons${
         urlParams.toString() ? `?${urlParams.toString()}` : ''
     }`
 
@@ -56,8 +56,8 @@ export async function generateMetadata({
             type: 'website',
             images: [{
                 url: serviceName
-                    ? `https://doczappoint.com/images/${serviceParam}-og.jpg`
-                    : 'https://doczappoint.com/images/hospitals-og.jpg',
+                    ? `https://groomtap.in/images/${serviceParam}-og.jpg`
+                    : 'https://groomtap.in/images/hospitals-og.jpg',
                 width: 1200,
                 height: 630,
                 alt: title,

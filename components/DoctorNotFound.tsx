@@ -18,9 +18,9 @@ export default function DoctorNotFound() {
                 <p className="text-gray-600 mb-6">
                     We couldn't find the doctor you're looking for. Please check the URL or browse our list of available doctors.
                 </p>
-                <Link href="/doctors" passHref>
+                <Link href="/freelancers" passHref>
                     <Button className="bg-[#ff8a3c] hover:bg-[#ff7a2c] text-white">
-                        Browse Doctors
+                        Browse Freelancers
                     </Button>
                 </Link>
             </div>

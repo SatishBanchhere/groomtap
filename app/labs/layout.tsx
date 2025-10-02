@@ -76,12 +76,12 @@ export default function SearchLayout({
                 <meta property="og:title" content={title} />
                 <meta property="og:description" content={description} />
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content="https://doczappoint.com/labs" />
+                <meta property="og:url" content="https://groomtap.in/labs" />
 
                 {/* Canonical URL - important for SEO */}
                 <link
                     rel="canonical"
-                    href={`https://doczappoint.com/labs${
+                    href={`https://groomtap.in/labs${
                         state ? `/${state}` : ''
                     }${district ? `/${district}` : ''}${
                         test ? `?test=${test}` : ''

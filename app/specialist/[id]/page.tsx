@@ -56,7 +56,7 @@ export default function SpecialtyDetailPage({ params }: { params: { id: string }
           setDoctors(doctorsData)
         }
       } catch (error) {
-        console.error("Error fetching specialty and doctors:", error)
+        console.error("Error fetching service and freelancers:", error)
       } finally {
         setLoading(false)
       }
@@ -82,7 +82,7 @@ export default function SpecialtyDetailPage({ params }: { params: { id: string }
   if (!specialty) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold">Specialty not found</h1>
+        <h1 className="text-2xl font-bold">Service not found</h1>
       </div>
     )
   }
@@ -92,7 +92,7 @@ export default function SpecialtyDetailPage({ params }: { params: { id: string }
       <div className="flex items-center gap-4 mb-8">
         <Link href="/specialist" className="flex items-center text-gray-600 hover:text-gray-900">
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to Specialties
+          Back to Services
         </Link>
       </div>
 
@@ -101,7 +101,7 @@ export default function SpecialtyDetailPage({ params }: { params: { id: string }
           <div className="relative w-32 h-32">
             <Image
               src={specialty.imageUrl || "/placeholder-specialty.jpg"}
-              alt={`${specialty.name} Specialist`}
+              alt={`${specialty.name} Expert`}
               fill
               className="object-cover rounded-full"
             />
@@ -117,22 +117,22 @@ export default function SpecialtyDetailPage({ params }: { params: { id: string }
 
       <div className="mb-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">{specialty.name} Specialists</h2>
-          <Link href="/doctors" className="text-[#ff8a3c] hover:text-[#e67a34]">
-            View all doctors
+          <h2 className="text-2xl font-bold">{specialty.name} Experts</h2>
+          <Link href="/freelancers" className="text-[#ff8a3c] hover:text-[#e67a34]">
+            View all freelancers
           </Link>
         </div>
 
         {doctors.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-600">No doctors found for this specialty.</p>
+            <p className="text-gray-600">No freelancers found for this service.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
             {doctors.map((doctor) => (
                 <Link
-                    href={`/doctors/${doctor.id}`}
+                    href={`/freelancers/${doctor.id}`}
                     key={doctor.id}
                     className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-200"
                 >
@@ -140,7 +140,7 @@ export default function SpecialtyDetailPage({ params }: { params: { id: string }
                     <div className="relative h-20 w-20 flex-shrink-0">
                       <Image
                           src={doctor.imageUrl || "/placeholder-doctor.png"}
-                          alt={doctor.fullName || "Doctor Name"}
+                          alt={doctor.fullName || "Freelancer Name"}
                           fill
                           className="object-cover rounded-full"
                       />
@@ -162,15 +162,15 @@ export default function SpecialtyDetailPage({ params }: { params: { id: string }
                         </div>
                       </div>
                       <div className="mt-2 text-[#ff8a3c] font-medium">
-                        ₹{doctor.consultationFees} Consultation
+                        ₹{doctor.consultationFees} Service
                       </div>
-                      {doctor.ayushmanCardAvailable && (
+                      {/* {doctor.ayushmanCardAvailable && (
                           <div className="flex items-center gap-2">
                                                             <span className="text-green-600 font-medium text-sm">
                                                               ✅ Ayushman Card Accepted
                                                             </span>
                           </div>
-                      )}
+                      )} */}
                     </div>
                   </div>
                 </Link>

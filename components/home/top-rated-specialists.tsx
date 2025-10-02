@@ -48,7 +48,7 @@ export default function TopRatedSpecialists() {
           />
         </div>
         <div className="text-center mt-8">
-          <Link href="/doctors" className="btn-primary inline-flex">
+          <Link href="/freelancers" className="btn-primary inline-flex">
             <span>All Specialists</span>
             <ArrowRight size={16} />
           </Link>
@@ -112,7 +112,7 @@ function DoctorCard({
           <span className="text-xs text-gray-600">{phone}</span>
         </div>
         <div className="mt-3 text-sm">{time}</div>
-        <Link href={`/doctors/${name.toLowerCase().replace(/\s+/g, "-")}`} className="btn-outline text-sm mt-3 w-full">
+        <Link href={`/freelancers/${name.toLowerCase().replace(/\s+/g, "-")}`} className="btn-outline text-sm mt-3 w-full">
           Visit Now
         </Link>
       </div>

@@ -25,7 +25,6 @@ export default function SearchLayout({
                     content="Search for emergency services near you including ambulance, trauma care, and emergency hospitals."
                 />
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content="https://doczappoint.com/emergency" />
             </Head>
             <div className="bg-gray-50 min-h-screen">
                 <div className="container mx-auto px-4 py-8">

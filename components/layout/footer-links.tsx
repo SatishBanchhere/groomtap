@@ -16,7 +16,7 @@ export default function FooterLinks() {
         <h3 className="text-lg font-bold mb-4">Useful Links</h3>
         <ul className="space-y-2">
           <FooterLink href="/specialist" label="Specialist" />
-          <FooterLink href="/doctors" label="Doctors" />
+          <FooterLink href="/freelancers" label="Doctors" />
           <FooterLink href="/join-as-doctor" label="Join As Doctor" />
         </ul>
       </div>

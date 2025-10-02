@@ -7,24 +7,24 @@ import { motion, AnimatePresence } from "framer-motion"
 export default function Faq() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
-  const faqs = [
-    {
-      question: "What is DocZappoint?",
-      answer: "DocZappoint is a comprehensive healthcare platform that connects patients with qualified doctors and healthcare providers. We make it easy to find, book, and manage medical appointments online."
-    },
-    {
-      question: "How do I book an appointment?",
-      answer: "Booking an appointment is simple. Search for a doctor by specialty or location, select your preferred time slot, and confirm your booking. You'll receive an instant confirmation via email and SMS."
-    },
-    {
-      question: "Can I cancel or reschedule my appointment?",
-      answer: "Yes, you can cancel or reschedule your appointment up to 24 hours before the scheduled time. Simply log in to your account and manage your appointments in the dashboard."
-    },
-    {
-      question: "Is my medical information secure?",
-      answer: "Yes, we take data security very seriously. All your medical information is encrypted and stored securely following HIPAA guidelines and industry best practices."
-    }
-  ]
+const faqs = [
+  {
+    question: "What is GroomTap?",
+    answer: "GroomTap is a comprehensive grooming services platform that connects users with trusted salons, spas, and grooming professionals. We make it easy to find, book, and manage grooming appointments online."
+  },
+  {
+    question: "How do I book an appointment?",
+    answer: "Booking an appointment is simple. Search for a salon or professional by service type or location, select your preferred time slot, and confirm your booking. You'll receive an instant confirmation via email and SMS."
+  },
+  {
+    question: "Can I cancel or reschedule my appointment?",
+    answer: "Yes, you can cancel or reschedule your appointment up to 24 hours before the scheduled time. Simply log in to your account and manage your appointments in the dashboard."
+  },
+  {
+    question: "Is my personal information secure?",
+    answer: "Yes, we take data security very seriously. All your personal information is encrypted and stored securely following industry best practices."
+  }
+]
 
   return (
     <div className="py-16 bg-background">

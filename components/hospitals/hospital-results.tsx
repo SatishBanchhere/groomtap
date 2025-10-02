@@ -116,7 +116,7 @@ export function HospitalCard({
 
     return (
         <div className="border rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200">
-            <Link href={`/hospitals/${id}`} passHref>
+            <Link href={`/salons/${id}`} passHref>
                 <div className="cursor-pointer">
                     {/* Image Section */}
                     <div className="relative w-full h-48 bg-gray-100">

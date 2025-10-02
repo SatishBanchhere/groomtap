@@ -11,7 +11,6 @@ export default function Home() {
 
       <HeroSection />
       <SpecialistSection />
-      {/* <TopRatedSpecialists /> */}
       <AppDownload />
       <AppointmentProcess />
       <EmergencyNewsletter />
