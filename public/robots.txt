@@ -1,4 +1,5 @@
 User-agent: *
 Disallow: /tools
+Disallow: /itservices
 Allow: /
 Sitemap: https://groomtap.in/api/sitemap
